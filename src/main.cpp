@@ -7,6 +7,9 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <bx/math.h>
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <tiny_gltf.h>
 
 SDL_Window* window;
@@ -19,8 +22,7 @@ bool windowShouldClose = false;
 bgfx::ProgramHandle shaderProgram;
 
 struct Model {
-    template<std::size_t S>
-    static Model loadFromGLBData(tinygltf::TinyGLTF& loader, uint8_t const data[S]) {
+    static Model loadFromGLBData(tinygltf::TinyGLTF& loader, uint8_t const * const data, size_t const size) {
         tinygltf::Model model;
         std::string err;
         std::string warn;
@@ -29,7 +31,7 @@ struct Model {
             &err,
             &warn,
             data,
-            S
+            size
         );
 
         if(err.size() > 0) {
@@ -58,19 +60,19 @@ struct Model {
                 void const * const bufferData = 
                     (void*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
                 for(int i = 0; i < accessor.count; i++) {
-                    switch(bufferView.byteStride) {
-                        case 1: 
+                    switch(accessor.componentType) {
+                        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: 
                             indices.push_back(((uint8_t*)bufferData)[i]);
                             break;
-                        case 2: 
+                        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: 
                             indices.push_back(((uint16_t*)bufferData)[i]);
                             break;
-                        case 4: 
+                        case TINYGLTF_COMPONENT_TYPE_INT: 
                             indices.push_back(((uint32_t*)bufferData)[i]);
                             break;
-                        case 8: 
-                            indices.push_back(((uint64_t*)bufferData)[i]);
-                            break;
+                        // case TINYGLTF_COMPONENT_TYPE_UNSIGNED_LONG: 
+                        //     indices.push_back(((uint64_t*)bufferData)[i]);
+                        //     break;
                     }
                 }
             }
@@ -111,49 +113,49 @@ struct Model {
 
                 void const * const bufferData = 
                     (void*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-                // bgfx being big endian but gltf being little endian is getting on my nerves
-                // Sooo much repitition
-                if(!padWithAlpha) for(int i = 0; i < accessor.count; i++) {
+                // bgfx is big endian, (abgr), gltf is little endian, (rgba), yet I don't need to
+                // flip it here? wtf?
+                if(!padWithAlpha) { for(int i = 0; i < accessor.count; i++) {
                     switch(accessor.componentType) {
                         case TINYGLTF_COMPONENT_TYPE_FLOAT:
-                            positions.push_back(((float*)bufferData)[i*4 + 3]);
-                            positions.push_back(((float*)bufferData)[i*4 + 2]);
-                            positions.push_back(((float*)bufferData)[i*4 + 1]);
-                            positions.push_back(((float*)bufferData)[i*4 + 0]);
+                            colors.push_back(((float*)bufferData)[i*4 + 0]);
+                            colors.push_back(((float*)bufferData)[i*4 + 1]);
+                            colors.push_back(((float*)bufferData)[i*4 + 2]);
+                            colors.push_back(((float*)bufferData)[i*4 + 3]);
                             break;
-                        case TINYGLTF_COMPONENT_TYPE_BYTE:
-                            positions.push_back(((uint8_t*)bufferData)[i*4 + 3] / (float)0xffff);
-                            positions.push_back(((uint8_t*)bufferData)[i*4 + 2] / (float)0xffff);
-                            positions.push_back(((uint8_t*)bufferData)[i*4 + 1] / (float)0xffff);
-                            positions.push_back(((uint8_t*)bufferData)[i*4 + 0] / (float)0xffff);
+                        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+                            colors.push_back(((uint8_t*)bufferData)[i*4 + 0] / (float)UCHAR_MAX);
+                            colors.push_back(((uint8_t*)bufferData)[i*4 + 1] / (float)UCHAR_MAX);
+                            colors.push_back(((uint8_t*)bufferData)[i*4 + 2] / (float)UCHAR_MAX);
+                            colors.push_back(((uint8_t*)bufferData)[i*4 + 3] / (float)UCHAR_MAX);
                             break;
-                        case TINYGLTF_COMPONENT_TYPE_SHORT:
-                            positions.push_back(((uint16_t*)bufferData)[i*4 + 3] / (float)0xffffffff);
-                            positions.push_back(((uint16_t*)bufferData)[i*4 + 2] / (float)0xffffffff);
-                            positions.push_back(((uint16_t*)bufferData)[i*4 + 1] / (float)0xffffffff);
-                            positions.push_back(((uint16_t*)bufferData)[i*4 + 0] / (float)0xffffffff);
+                        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+                            colors.push_back(((uint16_t*)bufferData)[i*4 + 0] / (float)USHRT_MAX);
+                            colors.push_back(((uint16_t*)bufferData)[i*4 + 1] / (float)USHRT_MAX);
+                            colors.push_back(((uint16_t*)bufferData)[i*4 + 2] / (float)USHRT_MAX);
+                            colors.push_back(((uint16_t*)bufferData)[i*4 + 3] / (float)USHRT_MAX);
                             break;
                     }
-                } else for(int i = 0; i < accessor.count; i++) {
-                    positions.push_back(1.0);
+                }} else { for(int i = 0; i < accessor.count; i++) {
                     switch(accessor.componentType) {
                         case TINYGLTF_COMPONENT_TYPE_FLOAT:
-                            positions.push_back(((float*)bufferData)[i*3 + 2]);
-                            positions.push_back(((float*)bufferData)[i*3 + 1]);
-                            positions.push_back(((float*)bufferData)[i*3 + 0]);
+                            colors.push_back(((float*)bufferData)[i*3 + 0]);
+                            colors.push_back(((float*)bufferData)[i*3 + 1]);
+                            colors.push_back(((float*)bufferData)[i*3 + 2]);
                             break;
-                        case TINYGLTF_COMPONENT_TYPE_BYTE:
-                            positions.push_back(((uint8_t*)bufferData)[i*3 + 2] / (float)0xffff);
-                            positions.push_back(((uint8_t*)bufferData)[i*3 + 1] / (float)0xffff);
-                            positions.push_back(((uint8_t*)bufferData)[i*3 + 0] / (float)0xffff);
+                        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+                            colors.push_back(((uint8_t*)bufferData)[i*3 + 0] / (float)UCHAR_MAX);
+                            colors.push_back(((uint8_t*)bufferData)[i*3 + 1] / (float)UCHAR_MAX);
+                            colors.push_back(((uint8_t*)bufferData)[i*3 + 2] / (float)UCHAR_MAX);
                             break;
-                        case TINYGLTF_COMPONENT_TYPE_SHORT:
-                            positions.push_back(((uint16_t*)bufferData)[i*3 + 2] / (float)0xffffffff);
-                            positions.push_back(((uint16_t*)bufferData)[i*3 + 1] / (float)0xffffffff);
-                            positions.push_back(((uint16_t*)bufferData)[i*3 + 0] / (float)0xffffffff);
+                        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+                            colors.push_back(((uint16_t*)bufferData)[i*3 + 0] / (float)USHRT_MAX);
+                            colors.push_back(((uint16_t*)bufferData)[i*3 + 1] / (float)USHRT_MAX);
+                            colors.push_back(((uint16_t*)bufferData)[i*3 + 2] / (float)USHRT_MAX);
                             break;
                     }
-                }
+                    colors.push_back(1.0);
+                }}
             }
 
             retLayout.end();
@@ -183,6 +185,10 @@ struct Model {
                 .layout = retLayout,
             });
         }
+
+        return {
+            .primitives = retPrimitives,
+        };
     }
 
     struct Primitive {
@@ -209,32 +215,6 @@ struct ColoredPosition {
             .end();
         return ret;
     }
-};
-
-auto vertecies = std::vector<ColoredPosition>{
-    {-1.f, -1.f, -1.f, 0xff000000},
-    {-1.f, -1.f,  1.f, 0xff0000ff},
-    {-1.f,  1.f, -1.f, 0xff00ff00},
-    {-1.f,  1.f,  1.f, 0xff00ffff},
-    { 1.f, -1.f, -1.f, 0xffff0000},
-    { 1.f, -1.f,  1.f, 0xffff00ff},
-    { 1.f,  1.f, -1.f, 0xffffff00},
-    { 1.f,  1.f,  1.f, 0xffffffff},
-};
-
-auto indices = std::vector<uint32_t> {
-    0, 1, 2,
-    1, 3, 2,
-    4, 6, 5,
-    5, 6, 7,
-    0, 2, 4,
-    4, 2, 6,
-    1, 5, 3,
-    5, 7, 3,
-    0, 4, 1,
-    4, 5, 1,
-    2, 3, 6,
-    6, 3, 7,
 };
 
 bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t const len) {
@@ -284,9 +264,21 @@ int main(int argc, char** argv) {
     bgfx::setDebug(BGFX_DEBUG_WIREFRAME);
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
-    auto layout = ColoredPosition::layout();
+    tinygltf::TinyGLTF modelLoader;
+
+    Model const mokey = [&](){
+        uint8_t const mokey[] = {
+            #include "../cookedModels/mokey.glb.h"
+        };
+        return Model::loadFromGLBData(modelLoader, mokey, sizeof(mokey));
+    }();
+
+    auto const & layout = mokey.primitives[0].layout;
+    auto const & vertecies = mokey.primitives[0].vertexData;
+    auto const & indices = mokey.primitives[0].indexData;
+
     auto vertexBuffer = bgfx::createVertexBuffer(
-        bgfx::makeRef(vertecies.data(), vertecies.size() * sizeof(ColoredPosition)), 
+        bgfx::makeRef(vertecies.data(), vertecies.size()), 
         layout
     );
     auto indexBuffer = bgfx::createIndexBuffer(
@@ -324,7 +316,7 @@ int main(int argc, char** argv) {
         }
 
         bx::Vec3 at = {0.f, 0.f, 0.f};
-        bx::Vec3 eye = {7.f, 6.f, 5.f};
+        bx::Vec3 eye = {5.f, 4.f, 3.f};
 
         std::array<float, 16> view;
         bx::mtxLookAt(view.data(), eye, at);
@@ -347,6 +339,7 @@ int main(int argc, char** argv) {
               | BGFX_STATE_WRITE_A
               | BGFX_STATE_WRITE_Z
               | BGFX_STATE_CULL_CCW
+              | BGFX_STATE_DEPTH_TEST_LESS
             );
 
             std::array<float, 16> trans;

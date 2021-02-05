@@ -31,6 +31,21 @@ CPP_SOURCE=(
 
 SHADER_COMPILER='./bgfx/.build/linux64_gcc/bin/shadercRelease'
 
+cd ./rawModels
+MODEL_DIRECTORIES=`find -type d`
+MODEL_FILES=`find -type f`
+cd -
+
+for modelDir in ${MODEL_DIRECTORIES[*]}
+do
+    mkdir -p cookedModels/$modelDir
+done
+
+for rawModel in ${MODEL_FILES[*]}
+do
+    cat rawModels/$rawModel | xxd -i > cookedModels/$rawModel.h
+done
+
 mkdir -p shaderBuild
 $SHADER_COMPILER -f shaders/vert.sc -o shaderBuild/vert.h --type vertex   -i bgfx/src --bin2c
 $SHADER_COMPILER -f shaders/frag.sc -o shaderBuild/frag.h --type fragment -i bgfx/src --bin2c

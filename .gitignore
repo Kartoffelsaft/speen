@@ -2,4 +2,5 @@ shaderBuild
 a.out
 .cache
 compile_commands.json
-
+cookedModels
+rawModels/*
