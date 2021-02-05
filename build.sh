@@ -1,5 +1,11 @@
 #!/bin/sh
 
+### SETTINGS ###
+
+DO_EMBED_MODELS=false
+
+### ALL THE OTHER STUFF ###
+
 cd ./bgfx
 make linux-debug64
 cd ..
@@ -25,6 +31,8 @@ INCLUDES=(
     -I`pwd`/tinygltf
 )
 
+CPP_DEFINES=()
+
 CPP_SOURCE=(
     src/main.cpp
 )
@@ -41,16 +49,26 @@ do
     mkdir -p cookedModels/$modelDir
 done
 
-for rawModel in ${MODEL_FILES[*]}
-do
-    cat rawModels/$rawModel | xxd -i > cookedModels/$rawModel.h
-done
+if [ "$DO_EMBED_MODELS" = true ]
+then
+    CPP_DEFINES="$CPP_DEFINES -DEMBED_MODEL_FILES"
+    for rawModel in ${MODEL_FILES[*]}
+    do
+        cat rawModels/$rawModel | xxd -i > cookedModels/$rawModel.h
+    done
+else
+    for rawModel in ${MODEL_FILES[*]}
+    do
+        # as of now there is no processing to do, so it's just a link for if processing might be needed
+        ln rawModels/$rawModel cookedModels/$rawModel.pmdl
+    done
+fi
 
 mkdir -p shaderBuild
 $SHADER_COMPILER -f shaders/vert.sc -o shaderBuild/vert.h --type vertex   -i bgfx/src --bin2c
 $SHADER_COMPILER -f shaders/frag.sc -o shaderBuild/frag.h --type fragment -i bgfx/src --bin2c
 
-COMMAND="g++ ${COMPILER_FLAGS[*]} ${LINKER_FLAGS[*]} ${INCLUDES[*]} ${CPP_SOURCE[*]}"
+COMMAND="g++ ${COMPILER_FLAGS[*]} ${LINKER_FLAGS[*]} ${INCLUDES[*]} ${CPP_DEFINES[*]} ${CPP_SOURCE[*]}"
 sh -c "${COMMAND}"
 
 echo "[" > compile_commands.json

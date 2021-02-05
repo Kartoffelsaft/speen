@@ -38,6 +38,28 @@ struct Model {
             fprintf(stderr, "Error loading file: %s\n", err.c_str());
         }
 
+        return loadFromGLTFModel(model);
+    }
+    
+    static Model loadFromGLBFile(tinygltf::TinyGLTF& loader, std::string const & file) {
+        tinygltf::Model model;
+        std::string err;
+        std::string warn;
+        loader.LoadBinaryFromFile(
+            &model,
+            &err,
+            &warn,
+            file
+        );
+
+        if(err.size() > 0) {
+            fprintf(stderr, "Error loading file: %s\n", err.c_str());
+        }
+
+        return loadFromGLTFModel(model);
+    }
+
+    static Model loadFromGLTFModel(tinygltf::Model const model) {
         decltype(primitives) retPrimitives;
         
         for(auto const mesh: model.meshes) for(auto const rawPrimitive: mesh.primitives) {
@@ -227,22 +249,17 @@ struct Model {
     std::vector<Primitive> primitives;
 };
 
-struct ColoredPosition {
-    float x;
-    float y;
-    float z;
-
-    uint32_t abgr;
-
-    static bgfx::VertexLayout layout() {
-        auto ret = bgfx::VertexLayout();
-        ret .begin()
-            .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-            .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-            .end();
-        return ret;
-    }
-};
+// To use:
+// #define MODEL_TO_LOAD [Your file name]
+// #define TINYGLTF_LOADER [Your tinygltf::TinyGLTF]
+// yourMesh = #include FILE_LOADER_HEADER
+//
+// I would make this a function-like macro, but macros can't contain includes
+#ifdef EMBED_MODEL_FILES
+#define FILE_LOADER_HEADER "./embed.h"
+#else
+#define FILE_LOADER_HEADER "./noembed.h"
+#endif
 
 bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t const len) {
     bgfx::Memory const * mem = bgfx::copy(data, len);
@@ -293,13 +310,10 @@ int main(int argc, char** argv) {
 
     tinygltf::TinyGLTF modelLoader;
 
-    Model const mokey = [&](){
-        uint8_t const mokey[] = {
-            #include "../cookedModels/mokey.glb.h"
-        };
-        return Model::loadFromGLBData(modelLoader, mokey, sizeof(mokey));
-    }();
-
+#define MODEL_TO_LOAD mokey.glb
+#define TINYGLTF_LOADER modelLoader
+    Model const mokey = 
+#include FILE_LOADER_HEADER
     auto const & layout = mokey.primitives[0].layout;
     auto const & vertecies = mokey.primitives[0].vertexData;
     auto const & indices = mokey.primitives[0].indexData;
