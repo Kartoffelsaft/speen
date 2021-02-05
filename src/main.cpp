@@ -49,6 +49,7 @@ struct Model {
             std::vector<uint32_t> indices;
             std::vector<float> positions;
             std::vector<float> colors;
+            std::vector<float> normals;
 
             {
                 auto const & accessor = model.accessors[rawPrimitive.indices];
@@ -158,6 +159,24 @@ struct Model {
                 }}
             }
 
+            auto normalOffset = vertexElementSize;
+            if(rawPrimitive.attributes.contains("NORMAL")) {
+                vertexElementSize += 3 * sizeof(float);
+
+                auto const & accessor = model.accessors[rawPrimitive.attributes.at("NORMAL")];
+                auto const & bufferView = model.bufferViews[accessor.bufferView];
+                auto const & buffer = model.buffers[bufferView.buffer];
+
+                normals.reserve(accessor.count * 3);
+                retLayout.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float);
+
+                float const * const bufferData = 
+                    (float*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+                for(int i = 0; i < accessor.count * 3; i++) {
+                    normals.push_back(bufferData[i]);
+                }
+            }
+
             retLayout.end();
             std::vector<uint8_t> retVertexData(vertexCount * vertexElementSize);
             if(positions.size() > 0) for(int i = 0; i < vertexCount; i++) {
@@ -177,6 +196,14 @@ struct Model {
                     = colors[i*4 + 2];
                 *((float*)(retVertexData.data() + i * vertexElementSize + colorOffset) + 3)
                     = colors[i*4 + 3];
+            }
+            if(normals.size() > 0) for(int i = 0; i < vertexCount; i++) {
+                *((float*)(retVertexData.data() + i * vertexElementSize + normalOffset) + 0)
+                    = normals[i*3 + 0];
+                *((float*)(retVertexData.data() + i * vertexElementSize + normalOffset) + 1)
+                    = normals[i*3 + 1];
+                *((float*)(retVertexData.data() + i * vertexElementSize + normalOffset) + 2)
+                    = normals[i*3 + 2];
             }
 
             retPrimitives.push_back({
@@ -324,7 +351,7 @@ int main(int argc, char** argv) {
         std::array<float, 16> projection;
         bx::mtxProj(
             projection.data(),
-            90.f,
+            50.f,
             (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT,
             0.01f,
             1000.f,
