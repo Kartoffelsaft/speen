@@ -22,6 +22,7 @@ INCLUDES=(
     -I`pwd`/bgfx/include
     -I`pwd`/bx/include
     -I`pwd`/bimg/include
+    -I`pwd`/tinygltf
 )
 
 CPP_SOURCE=(

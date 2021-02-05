@@ -7,3 +7,6 @@
 [submodule "bgfx"]
 	path = bgfx
 	url = git://github.com/bkaradzic/bgfx.git
+[submodule "tinygltf"]
+	path = tinygltf
+	url = https://github.com/syoyo/tinygltf.git
