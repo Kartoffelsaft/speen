@@ -21,7 +21,7 @@ LINKER_FLAGS=(
     -ldl
     -lpthread
     -lrt
-    bgfx/.build/linux64_gcc/bin/libbgfx-shared-libRelease.so
+    bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
 )
 
 INCLUDES=(

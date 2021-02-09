@@ -27,7 +27,7 @@ bgfx::ProgramHandle shadowProgram;
 int const RENDER_SCENE_ID = 0;
 int const RENDER_SHADOW_ID = 1;
 
-int const SHADOW_MAP_SIZE = 1024;
+int const SHADOW_MAP_SIZE = 256;
 bgfx::TextureHandle shadowMap;
 bgfx::FrameBufferHandle shadowMapBuffer;
 
@@ -424,6 +424,10 @@ int main(int argc, char** argv) {
 
     auto u_shadowmap = bgfx::createUniform("u_shadowmap", bgfx::UniformType::Sampler);
     auto u_lightmapMtx = bgfx::createUniform("u_lightmapMtx", bgfx::UniformType::Mat4);
+    auto u_lightDirMtx = bgfx::createUniform("u_lightDirMtx", bgfx::UniformType::Mat4);
+    auto u_modelMtx = bgfx::createUniform("u_modelMtx", bgfx::UniformType::Mat4);
+    // why does bgfx not have float/int uniforms? ugh.
+    auto u_frame = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4);
 
     std::array<float, 16> lightmapMtx;
     {
@@ -448,6 +452,7 @@ int main(int argc, char** argv) {
 
         bgfx::setViewTransform(RENDER_SHADOW_ID, lightView.data(), lightProjection.data());
         bx::mtxMul(lightmapMtx.data(), lightView.data(), lightProjection.data());
+        bgfx::setUniform(u_lightDirMtx, lightView.data());
     }
 
     {
@@ -460,7 +465,7 @@ int main(int argc, char** argv) {
         std::array<float, 16> projection;
         bx::mtxProj(
             projection.data(),
-            90.f,
+            60.f,
             (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT,
             0.01f,
             1000.f,
@@ -479,6 +484,8 @@ int main(int argc, char** argv) {
             }
         }
 
+        bgfx::setUniform(u_frame, std::vector<float>{frame / 1000.f, 0.0, 0.0, 0.0}.data());
+
         bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
         bgfx::setViewClear(RENDER_SCENE_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
 
@@ -494,10 +501,9 @@ int main(int argc, char** argv) {
         {
             std::array<float, 16> trans;
             bx::mtxIdentity(trans.data());
-            std::array<float, 16> transLight;
-            bx::mtxMul(transLight.data(), trans.data(), lightmapMtx.data());
-
+/*
             // it's refusing to do the depth test and I'm pissed
+            // since it's behine everything else anyway I'll go without drawing it;
             bgfx::setState(
                 BGFX_STATE_WRITE_RGB
               | BGFX_STATE_WRITE_A
@@ -512,7 +518,7 @@ int main(int argc, char** argv) {
             bgfx::setIndexBuffer(planeIndexBuffer);
 
             bgfx::submit(RENDER_SHADOW_ID, shadowProgram);
-
+*/
             bgfx::setState(
                 BGFX_STATE_WRITE_RGB
               | BGFX_STATE_WRITE_A
@@ -522,20 +528,19 @@ int main(int argc, char** argv) {
             );
 
             bgfx::setTransform(trans.data());
+            bgfx::setUniform(u_modelMtx, trans.data());
 
             bgfx::setVertexBuffer(0, planeVertexBuffer);
             bgfx::setIndexBuffer(planeIndexBuffer);
 
             bgfx::setTexture(0, u_shadowmap, shadowMap);
-            bgfx::setUniform(u_lightmapMtx, transLight.data());
+            bgfx::setUniform(u_lightmapMtx, lightmapMtx.data());
 
             bgfx::submit(RENDER_SCENE_ID, sceneProgram);
         }
         {
             std::array<float, 16> trans;
             bx::mtxRotateY(trans.data(), 0.0001f * frame);
-            std::array<float, 16> transLight;
-            bx::mtxMul(transLight.data(), trans.data(), lightmapMtx.data());
 
             bgfx::setState(
                 BGFX_STATE_WRITE_RGB
@@ -544,7 +549,6 @@ int main(int argc, char** argv) {
               | BGFX_STATE_CULL_CCW
               | BGFX_STATE_DEPTH_TEST_LESS
             );
-
             
             bgfx::setTransform(trans.data());
 
@@ -562,12 +566,13 @@ int main(int argc, char** argv) {
             );
 
             bgfx::setTransform(trans.data());
+            bgfx::setUniform(u_modelMtx, trans.data());
 
             bgfx::setVertexBuffer(0, mokeyVertexBuffer);
             bgfx::setIndexBuffer(mokeyIndexBuffer);
 
             bgfx::setTexture(0, u_shadowmap, shadowMap);
-            bgfx::setUniform(u_lightmapMtx, transLight.data());
+            bgfx::setUniform(u_lightmapMtx, lightmapMtx.data());
 
             bgfx::submit(RENDER_SCENE_ID, sceneProgram);
         }
