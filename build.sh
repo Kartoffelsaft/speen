@@ -2,7 +2,7 @@
 
 ### SETTINGS ###
 
-DO_EMBED_MODELS=false
+DO_EMBED_MODELS=true
 
 ### ALL THE OTHER STUFF ###
 
@@ -65,8 +65,10 @@ else
 fi
 
 mkdir -p shaderBuild
-$SHADER_COMPILER -f shaders/vert.sc -o shaderBuild/vert.h --type vertex   -i bgfx/src --bin2c
-$SHADER_COMPILER -f shaders/frag.sc -o shaderBuild/frag.h --type fragment -i bgfx/src --bin2c
+$SHADER_COMPILER -f shaders/vert.sc          -o shaderBuild/vert.h          --type vertex   -i bgfx/src --bin2c
+$SHADER_COMPILER -f shaders/frag.sc          -o shaderBuild/frag.h          --type fragment -i bgfx/src --bin2c
+$SHADER_COMPILER -f shaders/vertShadowmap.sc -o shaderBuild/vertShadowmap.h --type vertex   -i bgfx/src --bin2c
+$SHADER_COMPILER -f shaders/fragShadowmap.sc -o shaderBuild/fragShadowmap.h --type fragment -i bgfx/src --bin2c
 
 COMMAND="g++ ${COMPILER_FLAGS[*]} ${LINKER_FLAGS[*]} ${INCLUDES[*]} ${CPP_DEFINES[*]} ${CPP_SOURCE[*]}"
 sh -c "${COMMAND}"
