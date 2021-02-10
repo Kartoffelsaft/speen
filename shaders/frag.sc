@@ -10,12 +10,12 @@ void main() {
     vec2 shadowSampleCoord = v_lightmapCoord.xy + vec2(
         rand2(vec2(v_lightmapCoord.x, u_frame.x)) - 0.5, 
         rand2(vec2(v_lightmapCoord.y, u_frame.x)) - 0.5
-    ) * 0.001;
+    ) * 0.002;
 
     vec4 shadowInfo = texture2D(u_shadowmap, shadowSampleCoord);
 
     float brightness = 0.9;
-    if(shadowInfo.w < v_lightmapCoord.z - 0.01) {
+    if(shadowInfo.w < v_lightmapCoord.z - 0.005) {
         brightness = 0.6;
     }
 
