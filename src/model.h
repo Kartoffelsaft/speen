@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <memory>
 #include <bgfx/bgfx.h>
 #include <tiny_gltf.h>
 
@@ -29,3 +31,13 @@ struct Model {
 
     std::vector<Primitive> primitives;
 };
+
+#define LOAD_MODEL(MODEL_NAME) modelLoader.getModel("./cookedModels/" MODEL_NAME ".pmdl")
+
+struct ModelLoader {
+    std::weak_ptr<Model const> getModel(std::string const & name);
+
+    std::map<std::string, std::shared_ptr<Model const>> loadedModels;
+};
+
+extern ModelLoader modelLoader;

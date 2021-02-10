@@ -228,3 +228,31 @@ Model Model::loadFromGLTFModel(
         .primitives = retPrimitives,
     };
 }
+
+tinygltf::TinyGLTF gltfLoader;
+
+std::weak_ptr<Model const> ModelLoader::getModel(
+    std::string const & name
+) {
+    if(loadedModels.contains(name)) {
+        return loadedModels.at(name);
+    } else {
+        loadedModels[name] = std::make_shared<Model const>(Model::loadFromGLBFile(gltfLoader, name));
+        return loadedModels.at(name);
+    }
+}
+
+#ifdef EMBED_MODEL_FILES
+ModelLoader modelLoader = ModelLoader{
+    .loadedModels = {
+        {"./cookedModels/mokey.glb.pmdl", [](){
+            uint8_t const data[] = {
+#include "../cookedModels/mokey.glb.h"
+            };
+            return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
+        }()}
+    }
+};
+#else
+ModelLoader modelLoader = ModelLoader();
+#endif

@@ -77,6 +77,7 @@ sh -c "${COMMAND}"
 echo "[" > compile_commands.json
 for file in ${CPP_SOURCE[*]}
 do
-    echo "{ \"directory\": \"`pwd`\", \"command\": \"${COMMAND}\", \"file\": \"`pwd`/${file}\"}" >> compile_commands.json
+    echo "{ \"directory\": \"`pwd`\", \"command\": \"${COMMAND}\", \"file\": \"`pwd`/${file}\"}," >> compile_commands.json
 done
-echo "]" >> compile_commands.json
+# I'm too lazy to figure out how to remove the last comma
+echo "{\"directory\": \"\", \"command\": \"\", \"file\": \"\"}]" >> compile_commands.json

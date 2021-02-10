@@ -29,19 +29,6 @@ int const SHADOW_MAP_SIZE = 8192;
 bgfx::TextureHandle shadowMap;
 bgfx::FrameBufferHandle shadowMapBuffer;
 
-
-// To use:
-// #define MODEL_TO_LOAD [Your file name]
-// #define TINYGLTF_LOADER [Your tinygltf::TinyGLTF]
-// yourMesh = #include FILE_LOADER_HEADER
-//
-// I would make this a function-like macro, but macros can't contain includes
-#ifdef EMBED_MODEL_FILES
-#define FILE_LOADER_HEADER "./embed.h"
-#else
-#define FILE_LOADER_HEADER "./noembed.h"
-#endif
-
 bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t const len) {
     bgfx::Memory const * mem = bgfx::copy(data, len);
     return bgfx::createShader(mem);
@@ -91,15 +78,10 @@ int main(int argc, char** argv) {
 
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
-    tinygltf::TinyGLTF modelLoader;
-
-#define MODEL_TO_LOAD mokey.glb
-#define TINYGLTF_LOADER modelLoader
-    Model const mokey = 
-#include FILE_LOADER_HEADER
-    auto const & layout = mokey.primitives[0].layout;
-    auto const & vertecies = mokey.primitives[0].vertexData;
-    auto const & indices = mokey.primitives[0].indexData;
+    std::weak_ptr<Model const> const mokey = LOAD_MODEL("mokey.glb");
+    auto const & layout = mokey.lock()->primitives[0].layout;
+    auto const & vertecies = mokey.lock()->primitives[0].vertexData;
+    auto const & indices = mokey.lock()->primitives[0].indexData;
 
     auto mokeyVertexBuffer = bgfx::createVertexBuffer(
         bgfx::makeRef(vertecies.data(), vertecies.size()), 
