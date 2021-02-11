@@ -2,7 +2,7 @@
 
 ### SETTINGS ###
 
-DO_EMBED_MODELS=true
+DO_EMBED_MODELS=false
 
 ### ALL THE OTHER STUFF ###
 
@@ -36,6 +36,7 @@ CPP_DEFINES=()
 CPP_SOURCE=(
     src/main.cpp
     src/model.cpp
+    src/rendererState.cpp
 )
 
 SHADER_COMPILER='./bgfx/.build/linux64_gcc/bin/shadercRelease'

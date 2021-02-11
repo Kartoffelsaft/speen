@@ -189,37 +189,46 @@ Model Model::loadFromGLTFModel(
         }
 
         retLayout.end();
-        std::vector<uint8_t> retVertexData(vertexCount * vertexElementSize);
+        std::vector<uint8_t> retVertexVector(vertexCount * vertexElementSize);
         if(positions.size() > 0) for(int i = 0; i < vertexCount; i++) {
-            *((float*)(retVertexData.data() + i * vertexElementSize + positionOffset) + 0)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 0)
                 = positions[i*3 + 0];
-            *((float*)(retVertexData.data() + i * vertexElementSize + positionOffset) + 1)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 1)
                 = positions[i*3 + 1];
-            *((float*)(retVertexData.data() + i * vertexElementSize + positionOffset) + 2)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 2)
                 = positions[i*3 + 2];
         }
         if(colors.size() > 0) for(int i = 0; i < vertexCount; i++) {
-            *((float*)(retVertexData.data() + i * vertexElementSize + colorOffset) + 0)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 0)
                 = colors[i*4 + 0];
-            *((float*)(retVertexData.data() + i * vertexElementSize + colorOffset) + 1)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 1)
                 = colors[i*4 + 1];
-            *((float*)(retVertexData.data() + i * vertexElementSize + colorOffset) + 2)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 2)
                 = colors[i*4 + 2];
-            *((float*)(retVertexData.data() + i * vertexElementSize + colorOffset) + 3)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 3)
                 = colors[i*4 + 3];
         }
         if(normals.size() > 0) for(int i = 0; i < vertexCount; i++) {
-            *((float*)(retVertexData.data() + i * vertexElementSize + normalOffset) + 0)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 0)
                 = normals[i*3 + 0];
-            *((float*)(retVertexData.data() + i * vertexElementSize + normalOffset) + 1)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 1)
                 = normals[i*3 + 1];
-            *((float*)(retVertexData.data() + i * vertexElementSize + normalOffset) + 2)
+            *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 2)
                 = normals[i*3 + 2];
         }
 
+	auto const retVertexBuffer = bgfx::createVertexBuffer(
+    	    bgfx::copy(retVertexVector.data(), retVertexVector.size() * sizeof(uint8_t)),
+    	    retLayout
+	);
+	auto const retIndexBuffer  = bgfx::createIndexBuffer(
+    	    bgfx::copy(indices.data(), indices.size() * sizeof(uint32_t)),
+    	    BGFX_BUFFER_INDEX32
+    	);
+
         retPrimitives.push_back({
-            .vertexData = retVertexData,
-            .indexData = indices,
+	    .vertexBuffer = retVertexBuffer,
+	    .indexBuffer = retIndexBuffer,
             .layout = retLayout,
         });
     }
@@ -230,6 +239,23 @@ Model Model::loadFromGLTFModel(
 }
 
 tinygltf::TinyGLTF gltfLoader;
+
+ModelLoader ModelLoader::init() {
+#ifdef EMBED_MODEL_FILES
+    return ModelLoader{
+        .loadedModels = {
+            {"./cookedModels/mokey.glb.pmdl", [](){
+                uint8_t const data[] = {
+#include "../cookedModels/mokey.glb.h"
+                };
+                return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
+            }()}
+        }
+    };
+#else
+    return ModelLoader();
+#endif
+}
 
 std::weak_ptr<Model const> ModelLoader::getModel(
     std::string const & name
@@ -242,17 +268,4 @@ std::weak_ptr<Model const> ModelLoader::getModel(
     }
 }
 
-#ifdef EMBED_MODEL_FILES
-ModelLoader modelLoader = ModelLoader{
-    .loadedModels = {
-        {"./cookedModels/mokey.glb.pmdl", [](){
-            uint8_t const data[] = {
-#include "../cookedModels/mokey.glb.h"
-            };
-            return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
-        }()}
-    }
-};
-#else
-ModelLoader modelLoader = ModelLoader();
-#endif
+

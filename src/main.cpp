@@ -4,19 +4,13 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <bx/math.h>
 
 #include "model.h"
+#include "rendererState.h"
 
-SDL_Window* window;
-uint64_t frame = 0;
-int const WINDOW_WIDTH = 1280;
-int const WINDOW_HEIGHT = 720;
-char const * const WINDOW_NAME = "First bgfx";
 bool windowShouldClose = false;
 
 bgfx::ProgramHandle sceneProgram;
@@ -25,7 +19,7 @@ bgfx::ProgramHandle shadowProgram;
 int const RENDER_SCENE_ID = 0;
 int const RENDER_SHADOW_ID = 1;
 
-int const SHADOW_MAP_SIZE = 8192;
+int const SHADOW_MAP_SIZE = 256;
 bgfx::TextureHandle shadowMap;
 bgfx::FrameBufferHandle shadowMapBuffer;
 
@@ -35,62 +29,11 @@ bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t cons
 }
 
 int main(int argc, char** argv) {
-    if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "Failed to load SDL video: %s\n", SDL_GetError());
-        exit(-1);
-    }
-
-    window = SDL_CreateWindow(
-        WINDOW_NAME, 
-        SDL_WINDOWPOS_UNDEFINED, 
-        SDL_WINDOWPOS_UNDEFINED, 
-        WINDOW_WIDTH, 
-        WINDOW_HEIGHT, 
-        SDL_WINDOW_SHOWN
-    );
-
-    if(window == nullptr) {
-        fprintf(stderr, "Could not create SDL window: %s\n", SDL_GetError());
-        exit(-2);
-    }
-
-    bgfx::renderFrame();
-
-    {
-        bgfx::Init i;
-
-        SDL_SysWMinfo wndwInfo;
-        SDL_VERSION(&wndwInfo.version);
-        if(!SDL_GetWindowWMInfo(window, &wndwInfo)) exit(-3);
-
-#if SDL_VIDEO_DRIVER_X11
-        i.platformData.ndt = wndwInfo.info.x11.display;
-        i.platformData.nwh = (void*)wndwInfo.info.x11.window;
-#elif SDL_VIDEO_DRIVER_WINDOWS
-        i.platformData.nwh = wndwInfo.info.win.window;
-#endif
-        i.type = bgfx::RendererType::OpenGL;
-
-        bgfx::init(i);
-    }
-
-    bgfx::reset(WINDOW_WIDTH, WINDOW_HEIGHT);
-
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
     std::weak_ptr<Model const> const mokey = LOAD_MODEL("mokey.glb");
-    auto const & layout = mokey.lock()->primitives[0].layout;
-    auto const & vertecies = mokey.lock()->primitives[0].vertexData;
-    auto const & indices = mokey.lock()->primitives[0].indexData;
-
-    auto mokeyVertexBuffer = bgfx::createVertexBuffer(
-        bgfx::makeRef(vertecies.data(), vertecies.size()), 
-        layout
-    );
-    auto mokeyIndexBuffer = bgfx::createIndexBuffer(
-        bgfx::makeRef(indices.data(), indices.size() * sizeof(uint32_t)),
-        BGFX_BUFFER_INDEX32
-    );
+    auto const & mokeyVertexBuffer = mokey.lock()->primitives[0].vertexBuffer;
+    auto const & mokeyIndexBuffer  = mokey.lock()->primitives[0].indexBuffer;
 
     struct planeVertex {
         float x, y, z;
@@ -139,7 +82,7 @@ int main(int argc, char** argv) {
     }();
 
 
-    bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, rendererState.WINDOW_WIDTH, rendererState.WINDOW_HEIGHT);
 
 
     shadowProgram = [](){
@@ -219,7 +162,7 @@ int main(int argc, char** argv) {
         bx::mtxProj(
             projection.data(),
             60.f,
-            (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT,
+            (float)rendererState.WINDOW_WIDTH/(float)rendererState.WINDOW_HEIGHT,
             0.01f,
             1000.f,
             bgfx::getCaps()->homogeneousDepth
@@ -237,7 +180,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        bgfx::setUniform(u_frame, std::vector<float>{frame / 10000.f, 0.0, 0.0, 0.0}.data());
+        bgfx::setUniform(u_frame, std::vector<float>{rendererState.frame / 10000.f, 0.0, 0.0, 0.0}.data());
 
         bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
         bgfx::setViewClear(RENDER_SCENE_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
@@ -256,7 +199,7 @@ int main(int argc, char** argv) {
             bx::mtxIdentity(trans.data());
 /*
             // it's refusing to do the depth test and I'm pissed
-            // since it's behine everything else anyway I'll go without drawing it;
+            // since it's behind everything else anyway I'll go without drawing it
             bgfx::setState(
                 BGFX_STATE_WRITE_RGB
               | BGFX_STATE_WRITE_A
@@ -293,7 +236,7 @@ int main(int argc, char** argv) {
         }
         {
             std::array<float, 16> trans;
-            bx::mtxRotateY(trans.data(), 0.0001f * frame);
+            bx::mtxRotateY(trans.data(), 0.0001f * rendererState.frame);
 
             bgfx::setState(
                 BGFX_STATE_WRITE_RGB
@@ -331,10 +274,10 @@ int main(int argc, char** argv) {
         }
 
         bgfx::frame();
-        frame++;
+        rendererState.frame++;
     }
 
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(rendererState.window);
 
     bgfx::shutdown();
 
