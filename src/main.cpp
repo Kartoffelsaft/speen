@@ -10,6 +10,7 @@
 
 #include "model.h"
 #include "rendererState.h"
+#include "mathUtils.h"
 
 bool windowShouldClose = false;
 
@@ -125,15 +126,15 @@ int main(int argc, char** argv) {
     // why does bgfx not have float/int uniforms? ugh.
     auto u_frame = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4);
 
-    std::array<float, 16> lightmapMtx;
+    Mat4 lightmapMtx;
     {
         bx::Vec3 lightSource = {-4.f, 6.f, 3.f};
         bx::Vec3 lightDest = {0.f, 0.f, 0.f};
 
-        std::array<float, 16> lightView;
+        Mat4 lightView;
         bx::mtxLookAt(lightView.data(), lightSource, lightDest);
 
-        std::array<float, 16> lightProjection;
+        Mat4 lightProjection;
         bx::mtxOrtho(
             lightProjection.data(), 
             -10.f, 
@@ -155,10 +156,10 @@ int main(int argc, char** argv) {
         bx::Vec3 at = {0.f, 0.f, 0.f};
         bx::Vec3 eye = {5.f, 4.f, 3.f};
 
-        std::array<float, 16> view;
+        Mat4 view;
         bx::mtxLookAt(view.data(), eye, at);
 
-        std::array<float, 16> projection;
+        Mat4 projection;
         bx::mtxProj(
             projection.data(),
             60.f,
@@ -195,7 +196,7 @@ int main(int argc, char** argv) {
         }
 
         {
-            std::array<float, 16> trans;
+            Mat4 trans;
             bx::mtxIdentity(trans.data());
 /*
             // it's refusing to do the depth test and I'm pissed
@@ -235,7 +236,7 @@ int main(int argc, char** argv) {
             bgfx::submit(RENDER_SCENE_ID, sceneProgram);
         }
         {
-            std::array<float, 16> trans;
+            Mat4 trans;
             bx::mtxRotateY(trans.data(), 0.0001f * rendererState.frame);
 
             bgfx::setState(
