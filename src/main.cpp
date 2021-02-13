@@ -11,30 +11,13 @@
 #include "model.h"
 #include "rendererState.h"
 #include "mathUtils.h"
+#include "modelInstance.h"
 
-bool windowShouldClose = false;
-
-bgfx::ProgramHandle sceneProgram;
-bgfx::ProgramHandle shadowProgram;
-
-int const RENDER_SCENE_ID = 0;
-int const RENDER_SHADOW_ID = 1;
-
-int const SHADOW_MAP_SIZE = 256;
-bgfx::TextureHandle shadowMap;
-bgfx::FrameBufferHandle shadowMapBuffer;
-
-bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t const len) {
-    bgfx::Memory const * mem = bgfx::copy(data, len);
-    return bgfx::createShader(mem);
-}
 
 int main(int argc, char** argv) {
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
-    std::weak_ptr<Model const> const mokey = LOAD_MODEL("mokey.glb");
-    auto const & mokeyVertexBuffer = mokey.lock()->primitives[0].vertexBuffer;
-    auto const & mokeyIndexBuffer  = mokey.lock()->primitives[0].indexBuffer;
+    auto mokey = ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb"));
 
     struct planeVertex {
         float x, y, z;
@@ -68,90 +51,6 @@ int main(int argc, char** argv) {
         BGFX_BUFFER_INDEX32
     );
 
-    sceneProgram = [](){
-        auto vertShader = [](){
-            #include "../shaderBuild/vert.h"
-            return createShaderFromArray(vert, sizeof(vert));
-        }();
-
-        auto fragShader = [](){
-            #include "../shaderBuild/frag.h"
-            return createShaderFromArray(frag, sizeof(frag));
-        }();
-
-        return bgfx::createProgram(vertShader, fragShader, true);
-    }();
-
-
-    bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, rendererState.WINDOW_WIDTH, rendererState.WINDOW_HEIGHT);
-
-
-    shadowProgram = [](){
-        auto vertShader = [](){
-            #include "../shaderBuild/vertShadowmap.h"
-            return createShaderFromArray(vertShadowmap, sizeof(vertShadowmap));
-        }();
-
-        auto fragShader = [](){
-            #include "../shaderBuild/fragShadowmap.h"
-            return createShaderFromArray(fragShadowmap, sizeof(fragShadowmap));
-        }();
-
-        return bgfx::createProgram(vertShader, fragShader, true);
-    }();
-
-    shadowMapBuffer = [](){
-        std::vector<bgfx::TextureHandle> shadowmaps = {
-            bgfx::createTexture2D(
-                SHADOW_MAP_SIZE,
-                SHADOW_MAP_SIZE,
-                false,
-                1,
-                bgfx::TextureFormat::RGBA8,
-                BGFX_TEXTURE_RT
-            )
-        };
-
-        shadowMap = shadowmaps.at(0);
-        return bgfx::createFrameBuffer(shadowmaps.size(), shadowmaps.data(), true);
-    }();
-
-    bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-    bgfx::setViewFrameBuffer(RENDER_SHADOW_ID, shadowMapBuffer);
-
-    auto u_shadowmap = bgfx::createUniform("u_shadowmap", bgfx::UniformType::Sampler);
-    auto u_lightmapMtx = bgfx::createUniform("u_lightmapMtx", bgfx::UniformType::Mat4);
-    auto u_lightDirMtx = bgfx::createUniform("u_lightDirMtx", bgfx::UniformType::Mat4);
-    auto u_modelMtx = bgfx::createUniform("u_modelMtx", bgfx::UniformType::Mat4);
-    // why does bgfx not have float/int uniforms? ugh.
-    auto u_frame = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4);
-
-    Mat4 lightmapMtx;
-    {
-        bx::Vec3 lightSource = {-4.f, 6.f, 3.f};
-        bx::Vec3 lightDest = {0.f, 0.f, 0.f};
-
-        Mat4 lightView;
-        bx::mtxLookAt(lightView.data(), lightSource, lightDest);
-
-        Mat4 lightProjection;
-        bx::mtxOrtho(
-            lightProjection.data(), 
-            -10.f, 
-            10.f, 
-            -10.f, 
-            10.f, 
-            -15.f, 
-            15.f, 
-            0.f, 
-            bgfx::getCaps()->homogeneousDepth
-        );
-
-        bgfx::setViewTransform(RENDER_SHADOW_ID, lightView.data(), lightProjection.data());
-        bx::mtxMul(lightmapMtx.data(), lightView.data(), lightProjection.data());
-        bgfx::setUniform(u_lightDirMtx, lightView.data());
-    }
-
     {
         bx::Vec3 at = {0.f, 0.f, 0.f};
         bx::Vec3 eye = {5.f, 4.f, 3.f};
@@ -169,27 +68,29 @@ int main(int argc, char** argv) {
             bgfx::getCaps()->homogeneousDepth
         );
 
-        bgfx::setViewTransform(RENDER_SCENE_ID, view.data(), projection.data());
+        bgfx::setViewTransform(rendererState.RENDER_SCENE_ID, view.data(), projection.data());
     }
 
-    bgfx::touch(RENDER_SCENE_ID);
-    while(!windowShouldClose) {
+    while(!rendererState.windowShouldClose) {
         SDL_Event e;
         while(SDL_PollEvent(&e)) {
             if(e.type == SDL_QUIT) {
-                windowShouldClose = true;
+                rendererState.windowShouldClose = true;
             }
         }
 
-        bgfx::setUniform(u_frame, std::vector<float>{rendererState.frame / 10000.f, 0.0, 0.0, 0.0}.data());
+        bgfx::setUniform(
+            rendererState.uniforms.u_frame, 
+            std::vector<float>{rendererState.frame / 10000.f, 0.0, 0.0, 0.0}.data()
+        );
 
-        bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
-        bgfx::setViewClear(RENDER_SCENE_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
+        bgfx::setViewClear(rendererState.RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
+        bgfx::setViewClear(rendererState.RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
 
         {
             std::vector<bgfx::ViewId> viewOrder = {
-                RENDER_SHADOW_ID,
-                RENDER_SCENE_ID,
+                rendererState.RENDER_SHADOW_ID,
+                rendererState.RENDER_SCENE_ID,
             };
 
             bgfx::setViewOrder(0, viewOrder.size(), viewOrder.data());
@@ -225,54 +126,27 @@ int main(int argc, char** argv) {
             );
 
             bgfx::setTransform(trans.data());
-            bgfx::setUniform(u_modelMtx, trans.data());
+            bgfx::setUniform(rendererState.uniforms.u_modelMtx, trans.data());
 
             bgfx::setVertexBuffer(0, planeVertexBuffer);
             bgfx::setIndexBuffer(planeIndexBuffer);
 
-            bgfx::setTexture(0, u_shadowmap, shadowMap);
-            bgfx::setUniform(u_lightmapMtx, lightmapMtx.data());
+            bgfx::setTexture(0, rendererState.uniforms.u_shadowmap, rendererState.shadowMap);
+            bgfx::setUniform(rendererState.uniforms.u_lightmapMtx, rendererState.lightmapMtx.data());
 
-            bgfx::submit(RENDER_SCENE_ID, sceneProgram);
+            bgfx::submit(rendererState.RENDER_SCENE_ID, rendererState.sceneProgram);
         }
-        {
-            Mat4 trans;
-            bx::mtxRotateY(trans.data(), 0.0001f * rendererState.frame);
 
-            bgfx::setState(
-                BGFX_STATE_WRITE_RGB
-              | BGFX_STATE_WRITE_A
-              | BGFX_STATE_WRITE_Z
-              | BGFX_STATE_CULL_CCW
-              | BGFX_STATE_DEPTH_TEST_LESS
-            );
-            
-            bgfx::setTransform(trans.data());
-
-            bgfx::setVertexBuffer(0, mokeyVertexBuffer);
-            bgfx::setIndexBuffer(mokeyIndexBuffer);
-
-            bgfx::submit(RENDER_SHADOW_ID, shadowProgram);
-
-            bgfx::setState(
-                BGFX_STATE_WRITE_RGB
-              | BGFX_STATE_WRITE_A
-              | BGFX_STATE_WRITE_Z
-              | BGFX_STATE_CULL_CCW
-              | BGFX_STATE_DEPTH_TEST_LESS
-            );
-
-            bgfx::setTransform(trans.data());
-            bgfx::setUniform(u_modelMtx, trans.data());
-
-            bgfx::setVertexBuffer(0, mokeyVertexBuffer);
-            bgfx::setIndexBuffer(mokeyIndexBuffer);
-
-            bgfx::setTexture(0, u_shadowmap, shadowMap);
-            bgfx::setUniform(u_lightmapMtx, lightmapMtx.data());
-
-            bgfx::submit(RENDER_SCENE_ID, sceneProgram);
-        }
+	{
+    	    Mat4 newOrientation;
+    	    Mat4 rotateY;
+    	    Mat4 rotateX;
+    	    bx::mtxRotateY(rotateY.data(), rendererState.frame * 0.0001);
+    	    bx::mtxRotateX(rotateX.data(), rendererState.frame * 0.0001415);
+    	    bx::mtxMul(newOrientation.data(), rotateY.data(), rotateX.data());
+    	    mokey.orientation = newOrientation;
+            mokey.draw();
+	}
 
         bgfx::frame();
         rendererState.frame++;

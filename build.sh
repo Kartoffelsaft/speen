@@ -37,6 +37,7 @@ CPP_SOURCE=(
     src/main.cpp
     src/model.cpp
     src/rendererState.cpp
+    src/modelInstance.cpp
 )
 
 SHADER_COMPILER='./bgfx/.build/linux64_gcc/bin/shadercRelease'
