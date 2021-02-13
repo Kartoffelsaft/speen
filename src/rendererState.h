@@ -26,7 +26,7 @@ struct RendererState {
     int const RENDER_SCENE_ID = 0;
     int const RENDER_SHADOW_ID = 1;
 
-    int const SHADOW_MAP_SIZE = 256;
+    int const SHADOW_MAP_SIZE = 1024;
     bgfx::TextureHandle shadowMap;
     bgfx::FrameBufferHandle shadowMapBuffer;
 

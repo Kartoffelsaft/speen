@@ -51,7 +51,7 @@ RendererState RendererState::init() {
         bgfx::init(i);
     }
 
-    bgfx::reset(ret.WINDOW_WIDTH, ret.WINDOW_HEIGHT);
+    bgfx::reset(ret.WINDOW_WIDTH, ret.WINDOW_HEIGHT, BGFX_RESET_MSAA_X4);
 
     ret.modelLoader = ModelLoader::init();
 
