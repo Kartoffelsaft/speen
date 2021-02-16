@@ -32,7 +32,7 @@ struct Model {
     std::vector<Primitive> primitives;
 };
 
-#define LOAD_MODEL(MODEL_NAME) rendererState.modelLoader.getModel("cookedModels/" MODEL_NAME ".pmdl")
+#define LOAD_MODEL(MODEL_NAME) rendererState.modelLoader.getModel("./cookedModels/" MODEL_NAME ".pmdl")
 
 struct ModelLoader {
     static ModelLoader init();

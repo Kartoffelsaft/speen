@@ -4,3 +4,5 @@ a.out
 compile_commands.json
 cookedModels
 rawModels/*
+temp
+.build

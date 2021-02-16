@@ -2,7 +2,7 @@
 
 ### SETTINGS ###
 
-DO_EMBED_MODELS=false
+DO_EMBED_MODELS=true
 
 ### ALL THE OTHER STUFF ###
 
