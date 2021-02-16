@@ -141,14 +141,14 @@ int main(int argc, char** argv) {
         }
 
         {
-    	    Mat4 newOrientation;
-    	    Mat4 rotateY;
-    	    Mat4 rotateX;
-    	    bx::mtxRotateY(rotateY.data(), rendererState.frame * 0.0001);
-    	    bx::mtxRotateX(rotateX.data(), rendererState.frame * 0.0001415);
-    	    bx::mtxMul(newOrientation.data(), rotateY.data(), rotateX.data());
+            Mat4 newOrientation;
+            Mat4 rotateY;
+            Mat4 rotateX;
+            bx::mtxRotateY(rotateY.data(), rendererState.frame * 0.0001);
+            bx::mtxRotateX(rotateX.data(), rendererState.frame * 0.0001415);
+            bx::mtxMul(newOrientation.data(), rotateY.data(), rotateX.data());
             auto* model = entitySystem.getComponentData<ModelInstance>(mokey);
-    	    model->orientation = newOrientation;
+            model->orientation = newOrientation;
             model->draw();
         }
 

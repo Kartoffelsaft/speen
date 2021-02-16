@@ -217,18 +217,18 @@ Model Model::loadFromGLTFModel(
                 = normals[i*3 + 2];
         }
 
-	auto const retVertexBuffer = bgfx::createVertexBuffer(
-    	    bgfx::copy(retVertexVector.data(), retVertexVector.size() * sizeof(uint8_t)),
-    	    retLayout
-	);
-	auto const retIndexBuffer  = bgfx::createIndexBuffer(
-    	    bgfx::copy(indices.data(), indices.size() * sizeof(uint32_t)),
-    	    BGFX_BUFFER_INDEX32
-    	);
+        auto const retVertexBuffer = bgfx::createVertexBuffer(
+            bgfx::copy(retVertexVector.data(), retVertexVector.size() * sizeof(uint8_t)),
+            retLayout
+        );
+        auto const retIndexBuffer  = bgfx::createIndexBuffer(
+            bgfx::copy(indices.data(), indices.size() * sizeof(uint32_t)),
+            BGFX_BUFFER_INDEX32
+        );
 
         retPrimitives.push_back({
-	    .vertexBuffer = retVertexBuffer,
-	    .indexBuffer = retIndexBuffer,
+            .vertexBuffer = retVertexBuffer,
+            .indexBuffer = retIndexBuffer,
             .layout = retLayout,
         });
     }
