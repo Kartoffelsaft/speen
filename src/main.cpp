@@ -12,12 +12,15 @@
 #include "rendererState.h"
 #include "mathUtils.h"
 #include "modelInstance.h"
-
+#include "entitySystem.h"
 
 int main(int argc, char** argv) {
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
-    auto mokey = ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb"));
+    entitySystem.initComponent<ModelInstance>();
+
+    auto mokey = entitySystem.newEntity();
+    entitySystem.addComponent<ModelInstance>(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
 
     struct planeVertex {
         float x, y, z;
@@ -137,16 +140,17 @@ int main(int argc, char** argv) {
             bgfx::submit(rendererState.RENDER_SCENE_ID, rendererState.sceneProgram);
         }
 
-	{
+        {
     	    Mat4 newOrientation;
     	    Mat4 rotateY;
     	    Mat4 rotateX;
     	    bx::mtxRotateY(rotateY.data(), rendererState.frame * 0.0001);
     	    bx::mtxRotateX(rotateX.data(), rendererState.frame * 0.0001415);
     	    bx::mtxMul(newOrientation.data(), rotateY.data(), rotateX.data());
-    	    mokey.orientation = newOrientation;
-            mokey.draw();
-	}
+            auto* model = entitySystem.getComponentData<ModelInstance>(mokey);
+    	    model->orientation = newOrientation;
+            model->draw();
+        }
 
         bgfx::frame();
         rendererState.frame++;

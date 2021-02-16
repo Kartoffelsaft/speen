@@ -38,6 +38,7 @@ CPP_SOURCE=(
     src/model.cpp
     src/rendererState.cpp
     src/modelInstance.cpp
+    src/entitySystem.cpp
 )
 
 SHADER_COMPILER='./bgfx/.build/linux64_gcc/bin/shadercRelease'
