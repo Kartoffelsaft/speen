@@ -6,3 +6,5 @@ cookedModels
 rawModels/*
 temp
 .build
+*.kdev4
+*.kate*

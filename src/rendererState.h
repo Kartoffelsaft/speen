@@ -23,8 +23,8 @@ struct RendererState {
     bgfx::ProgramHandle sceneProgram;
     bgfx::ProgramHandle shadowProgram;
 
-    int const RENDER_SCENE_ID = 0;
-    int const RENDER_SHADOW_ID = 1;
+    bgfx::ViewId const RENDER_SCENE_ID = 0;
+    bgfx::ViewId const RENDER_SHADOW_ID = 1;
 
     int const SHADOW_MAP_SIZE = 1024;
     bgfx::TextureHandle shadowMap;

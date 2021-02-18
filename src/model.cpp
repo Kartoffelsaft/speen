@@ -51,7 +51,7 @@ Model Model::loadFromGLTFModel(
 ) {
     decltype(primitives) retPrimitives;
     
-    for(auto const mesh: model.meshes) for(auto const rawPrimitive: mesh.primitives) {
+    for(auto const & mesh: model.meshes) for(auto const & rawPrimitive: mesh.primitives) {
         bgfx::VertexLayout retLayout;
         retLayout.begin();
 

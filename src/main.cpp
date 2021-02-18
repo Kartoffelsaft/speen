@@ -13,14 +13,46 @@
 #include "mathUtils.h"
 #include "modelInstance.h"
 #include "entitySystem.h"
+#include "input.h"
 
 int main(int argc, char** argv) {
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
     entitySystem.initComponent<ModelInstance>();
+    entitySystem.initComponent<InputComponent>();
 
     auto mokey = entitySystem.newEntity();
-    entitySystem.addComponent<ModelInstance>(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
+    entitySystem.addComponent(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
+    entitySystem.addComponent(mokey, InputComponent{
+        .onInput = [](std::vector<SDL_Event> const events, EntityId const id) {
+            auto* model = entitySystem.getComponentData<ModelInstance>(id);
+            for(auto const & event: events) {
+                Mat4 delta;
+                bx::mtxIdentity(delta.data());
+                if(event.type == SDL_KEYDOWN) {
+                    switch(event.key.keysym.scancode) {
+                        case SDL_SCANCODE_W:
+                            bx::mtxRotateX(delta.data(), 0.05);
+                            break;
+                        case SDL_SCANCODE_S:
+                            bx::mtxRotateX(delta.data(), -0.05);
+                            break;
+                        case SDL_SCANCODE_A:
+                            bx::mtxRotateY(delta.data(), 0.05);
+                            break;
+                        case SDL_SCANCODE_D:
+                            bx::mtxRotateY(delta.data(), -0.05);
+                            break;
+                        default:
+                            break;
+                    }
+                    Mat4 tmp;
+                    bx::mtxMul(tmp.data(), model->orientation.data(), delta.data());
+                    model->orientation = tmp;
+                }
+            }
+        }
+    });
 
     struct planeVertex {
         float x, y, z;
@@ -75,11 +107,25 @@ int main(int argc, char** argv) {
     }
 
     while(!rendererState.windowShouldClose) {
-        SDL_Event e;
-        while(SDL_PollEvent(&e)) {
-            if(e.type == SDL_QUIT) {
-                rendererState.windowShouldClose = true;
-            }
+//        SDL_Event e;
+//        while(SDL_PollEvent(&e)) {
+//            if(e.type == SDL_QUIT) {
+//                rendererState.windowShouldClose = true;
+//            }
+//        }
+        std::vector<SDL_Event> events;
+        do {
+            events.emplace_back();
+        } while(SDL_PollEvent(&events.back()));
+        events.pop_back(); // last event doesn't have anything in it
+        
+        for(auto const & e: events) if(e.type == SDL_QUIT) {
+            rendererState.windowShouldClose = true;
+        }
+        
+        for(auto const & entity: entitySystem.filterByComponent<InputComponent>()) {
+            auto* const inputHandler = entitySystem.getComponentData<InputComponent>(entity);
+            inputHandler->onInput(events, entity);
         }
 
         bgfx::setUniform(
@@ -139,17 +185,9 @@ int main(int argc, char** argv) {
 
             bgfx::submit(rendererState.RENDER_SCENE_ID, rendererState.sceneProgram);
         }
-
-        {
-            Mat4 newOrientation;
-            Mat4 rotateY;
-            Mat4 rotateX;
-            bx::mtxRotateY(rotateY.data(), rendererState.frame * 0.0001);
-            bx::mtxRotateX(rotateX.data(), rendererState.frame * 0.0001415);
-            bx::mtxMul(newOrientation.data(), rotateY.data(), rotateX.data());
-            auto* model = entitySystem.getComponentData<ModelInstance>(mokey);
-            model->orientation = newOrientation;
-            model->draw();
+        
+        for(auto const & e: entitySystem.filterByComponent<ModelInstance>()) {
+            entitySystem.getComponentData<ModelInstance>(e)->draw();
         }
 
         bgfx::frame();

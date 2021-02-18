@@ -14,7 +14,6 @@ ModelInstance ModelInstance::fromModelPtr(std::weak_ptr<Model const> const nMode
 }
 
 void ModelInstance::draw() const {
-
     for(auto const & prim: model.lock()->primitives) {       
         bgfx::setUniform(rendererState.uniforms.u_modelMtx, orientation.data());
         bgfx::setState(
