@@ -52,6 +52,11 @@ Model Model::loadFromGLTFModel(
     decltype(primitives) retPrimitives;
     
     for(auto const & mesh: model.meshes) for(auto const & rawPrimitive: mesh.primitives) {
+        // from here until the unpacking most of what you're looking at here is basically copying data from
+        // the gltf file into various std::vectors, while using retLayout, vertexElementSize and vertexCount
+        // to keep track of what has been written
+        // If you want details, ctrl+f for '.contains("POSITION")', as it is a good example of how it's copied
+        
         bgfx::VertexLayout retLayout;
         retLayout.begin();
 
@@ -89,15 +94,24 @@ Model Model::loadFromGLTFModel(
             }
         }
 
+        // This attribute should come right after whatever has been previously copied
+        // so it's offset is set to however big that is
         auto positionOffset = vertexElementSize;
         if(rawPrimitive.attributes.contains("POSITION")) {
+            // Since we know now that the position attribute is going to be a part of each vertex,
+            // We'll have to specify that each vertex needs a Vec3's size worth of extra space to fit
             vertexElementSize += 3 * sizeof(float);
             
             tinygltf::Accessor const & accessor = model.accessors[rawPrimitive.attributes.at("POSITION")];
             tinygltf::BufferView const & bufferView = model.bufferViews[accessor.bufferView];
             tinygltf::Buffer const & buffer = model.buffers[bufferView.buffer];
 
+            // This is a similar thing to vertexElementSize += 3 * sizeof(float), but set up for 
+            // bgfx to be able to understand the vertex data it recieves
             retLayout.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float);
+            
+            // Technically works without this line, but doing this helps because this will be one
+            // big allocation instead of several small ones
             positions.reserve(accessor.count * 3);
 
             float const * const bufferData = 
@@ -106,6 +120,8 @@ Model Model::loadFromGLTFModel(
                 positions.push_back(bufferData[i]);
             }
 
+            // This only needs to be done once, because if there is n number of positions,
+            // there will be n normals, n texCoords, etc.
             vertexCount = accessor.count;
         } else {
             fprintf(stderr, "A 3D model without vertecies is a little odd, don't you think?\n");
@@ -189,6 +205,13 @@ Model Model::loadFromGLTFModel(
         }
 
         retLayout.end();
+        
+        // Most of the processing done here involves converting from a packed array to
+        // an unpacked array. i.e.:
+        // { a1, a2, a3, ..., b1, b2, b3, ... c1, c2, c3, ... } to
+        // { a1, b1, c1, a2, b2, c2, a3, b3, c3, ... }
+        // where a, b, and c are types and the numbers are indicies
+        
         std::vector<uint8_t> retVertexVector(vertexCount * vertexElementSize);
         if(positions.size() > 0) for(int i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 0)
