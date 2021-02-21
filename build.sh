@@ -51,7 +51,7 @@ CPP_SOURCE=(
     src/entitySystem.cpp
 )
 
-SHADER_COMPILER='./bgfx/.build/linux64_gcc/bin/shadercRelease'
+SHADER_COMPILER='./bgfx/.build/linux64_gcc/bin/shadercDebug'
 
 # Go into the model directory and get all the models
 # Ex: if there is rawModels/mokey.glb and rawModels/trees/palm.glb

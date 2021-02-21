@@ -7,7 +7,7 @@ This isn't a game yet, doofus.
 Prerequisites: `SDL2`, `xxd` (usually from `vim`), and probably a few other obvious things I'm forgetting.
 
 ```
-git submodule sync --recursive  # at least I think this is the command? I'm to lazy to test.
+git clone --recurse-submodules
 
 # copy some .glb file to [this project's directory]/rawModels/mokey.glb
 

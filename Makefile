@@ -9,8 +9,8 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 
 CPPFLAGS := \
     -Og \
-	-g \
-	-std=c++20
+    -g \
+    -std=c++20
 
 LDFLAGS := \
     -lSDL2 \
@@ -35,8 +35,9 @@ endif
 
 SHADER_SRC_DIR := ./shaders
 SHADER_BUILD_DIR := ./shaderBuild
-SHADER_VERTEX_SRCS := $(shell find $(SHADER_SRC_DIR) -name vert*.sc)
-SHADER_FRAGMENT_SRCS := $(shell find $(SHADER_SRC_DIR) -name frag*.sc)
+SHADER_SRCS := $(filter-out varying.def.sc,$(shell cd $(SHADER_SRC_DIR); find * -name '*.sc'; cd "$OLDPWD"))
+SHADER_TARGETS := $(addprefix $(SHADER_BUILD_DIR)/,$(addsuffix .h,$(basename $(SHADER_SRCS))))
+SHADER_SRCS := $(addprefix $(SHADER_SRC_DIR)/,$(SHADER_SRCS))
 
 MODEL_SRC_DIR := ./rawModels
 MODEL_BUILD_DIR := ./cookedModels
@@ -46,22 +47,22 @@ MODEL_TARGETS := $(addprefix $(MODEL_BUILD_DIR)/,$(addsuffix .h,$(MODEL_SRCS)))
 else
 MODEL_TARGETS := $(addprefix $(MODEL_BUILD_DIR)/,$(addsuffix .pmdl,$(MODEL_SRCS)))
 endif
-MODEL_SRCS := $(addprefix $(MODEL_SRC_DIR),$(MODEL_SRCS))
+MODEL_SRCS := $(addprefix $(MODEL_SRC_DIR)/,$(MODEL_SRCS))
 
-all: bgfx shaders models a.out compile_commands.json
+all: bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so $(SHADER_TARGETS) models a.out compile_commands.json
 
-bgfx:
+bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so:
 > cd bgfx
 > make linux-debug64
 > cd ..
 
-shaders:
+$(SHADER_BUILD_DIR)/v%.h: $(SHADER_SRC_DIR)/v%.sc
 > mkdir -p $(SHADER_BUILD_DIR)
-> bgfx/.build/linux64_gcc/bin/shadercDebug -f shaders/vert.sc          -o shaderBuild/vert.h          --type vertex   -i bgfx/src --bin2c
-> bgfx/.build/linux64_gcc/bin/shadercDebug -f shaders/frag.sc          -o shaderBuild/frag.h          --type fragment -i bgfx/src --bin2c
-> bgfx/.build/linux64_gcc/bin/shadercDebug -f shaders/vertShadowmap.sc -o shaderBuild/vertShadowmap.h --type vertex   -i bgfx/src --bin2c
-> bgfx/.build/linux64_gcc/bin/shadercDebug -f shaders/fragShadowmap.sc -o shaderBuild/fragShadowmap.h --type fragment -i bgfx/src --bin2c
+> bgfx/.build/linux64_gcc/bin/shadercDebug -f $< -o $@ --type vertex -i bgfx/src --bin2c
 
+$(SHADER_BUILD_DIR)/f%.h: $(SHADER_SRC_DIR)/f%.sc
+> mkdir -p $(SHADER_BUILD_DIR)
+> bgfx/.build/linux64_gcc/bin/shadercDebug -f $< -o $@ --type fragment -i bgfx/src --bin2c
 
 models: $(MODEL_TARGETS)
 
