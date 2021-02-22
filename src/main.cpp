@@ -86,33 +86,9 @@ int main(int argc, char** argv) {
         BGFX_BUFFER_INDEX32
     );
 
-    {
-        bx::Vec3 at = {0.f, 0.f, 0.f};
-        bx::Vec3 eye = {5.f, 4.f, 3.f};
-
-        Mat4 view;
-        bx::mtxLookAt(view.data(), eye, at);
-
-        Mat4 projection;
-        bx::mtxProj(
-            projection.data(),
-            60.f,
-            (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT,
-            0.01f,
-            1000.f,
-            bgfx::getCaps()->homogeneousDepth
-        );
-
-        bgfx::setViewTransform(RENDER_SCENE_ID, view.data(), projection.data());
-    }
+    rendererState.setCameraOrientation({5, 4, 3}, {0, 0, 0}, 60);
 
     while(!rendererState.windowShouldClose) {
-//        SDL_Event e;
-//        while(SDL_PollEvent(&e)) {
-//            if(e.type == SDL_QUIT) {
-//                rendererState.windowShouldClose = true;
-//            }
-//        }
         std::vector<SDL_Event> events;
         do {
             events.emplace_back();

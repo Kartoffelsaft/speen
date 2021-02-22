@@ -3,7 +3,6 @@ a.out
 .cache
 compile_commands.json
 cookedModels
-rawModels/*
 temp
 .build
 *.kdev4

@@ -102,6 +102,10 @@ Model Model::loadFromGLTFModel(
             // We'll have to specify that each vertex needs a Vec3's size worth of extra space to fit
             vertexElementSize += 3 * sizeof(float);
             
+            // Three star programming in action!\s
+            // Basically, the attribute gives an index into an accessor, which gives 
+            // an index into a bufferview, which gives an index into a buffer
+            // and each of those has it's own little nibble of data needed for later
             tinygltf::Accessor const & accessor = model.accessors[rawPrimitive.attributes.at("POSITION")];
             tinygltf::BufferView const & bufferView = model.bufferViews[accessor.bufferView];
             tinygltf::Buffer const & buffer = model.buffers[bufferView.buffer];
@@ -114,8 +118,11 @@ Model Model::loadFromGLTFModel(
             // big allocation instead of several small ones
             positions.reserve(accessor.count * 3);
 
+            // Remember those nibbles of data? this is where they are used.
+            // This is where the attribute data is stored
             float const * const bufferData = 
                 (float*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+            // Here's going through the data and copying it
             for(int i = 0; i < accessor.count * 3; i++) {
                 positions.push_back(bufferData[i]);
             }
@@ -240,6 +247,7 @@ Model Model::loadFromGLTFModel(
                 = normals[i*3 + 2];
         }
 
+        // I would use bgfx::makeRef but for whatever reason it breaks
         auto const retVertexBuffer = bgfx::createVertexBuffer(
             bgfx::copy(retVertexVector.data(), retVertexVector.size() * sizeof(uint8_t)),
             retLayout
