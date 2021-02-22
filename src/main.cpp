@@ -41,16 +41,22 @@ int main(int argc, char** argv) {
                 if(event.type == SDL_KEYDOWN) {
                     switch(event.key.keysym.scancode) {
                         case SDL_SCANCODE_W:
-                            bx::mtxRotateX(delta.data(), 0.05);
+                            delta[12] -= 0.1;
                             break;
                         case SDL_SCANCODE_S:
-                            bx::mtxRotateX(delta.data(), -0.05);
+                            delta[12] += 0.1;
                             break;
                         case SDL_SCANCODE_A:
-                            bx::mtxRotateY(delta.data(), 0.05);
+                            delta[14] -= 0.1;
                             break;
                         case SDL_SCANCODE_D:
-                            bx::mtxRotateY(delta.data(), -0.05);
+                            delta[14] += 0.1;
+                            break;
+                        case SDL_SCANCODE_R:
+                            delta[13] += 0.1;
+                            break;
+                        case SDL_SCANCODE_F:
+                            delta[13] -= 0.1;
                             break;
                         default:
                             break;
@@ -60,6 +66,12 @@ int main(int argc, char** argv) {
                     model->orientation = tmp;
                 }
             }
+
+            rendererState.setCameraOrientation(
+                {model->orientation[12] + 5, model->orientation[13] + 5, model->orientation[14] + 5},
+                {model->orientation[12], model->orientation[13], model->orientation[14]},
+                60
+            );
         }
     });
 
@@ -94,8 +106,6 @@ int main(int argc, char** argv) {
         bgfx::makeRef(planeIndicies.data(), planeIndicies.size() * sizeof(uint32_t)),
         BGFX_BUFFER_INDEX32
     );
-
-    rendererState.setCameraOrientation({5, 4, 3}, {0, 0, 0}, 60);
 
     while(!rendererState.windowShouldClose) {
         std::vector<SDL_Event> events;
