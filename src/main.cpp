@@ -97,13 +97,13 @@ int main(int argc, char** argv) {
         bx::mtxProj(
             projection.data(),
             60.f,
-            (float)rendererState.WINDOW_WIDTH/(float)rendererState.WINDOW_HEIGHT,
+            (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT,
             0.01f,
             1000.f,
             bgfx::getCaps()->homogeneousDepth
         );
 
-        bgfx::setViewTransform(rendererState.RENDER_SCENE_ID, view.data(), projection.data());
+        bgfx::setViewTransform(RENDER_SCENE_ID, view.data(), projection.data());
     }
 
     while(!rendererState.windowShouldClose) {
@@ -133,13 +133,13 @@ int main(int argc, char** argv) {
             std::vector<float>{rendererState.frame / 10000.f, 0.0, 0.0, 0.0}.data()
         );
 
-        bgfx::setViewClear(rendererState.RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
-        bgfx::setViewClear(rendererState.RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
+        bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
+        bgfx::setViewClear(RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
 
         {
             std::vector<bgfx::ViewId> viewOrder = {
-                rendererState.RENDER_SHADOW_ID,
-                rendererState.RENDER_SCENE_ID,
+                RENDER_SHADOW_ID,
+                RENDER_SCENE_ID,
             };
 
             bgfx::setViewOrder(0, viewOrder.size(), viewOrder.data());
@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
             bgfx::setTexture(0, rendererState.uniforms.u_shadowmap, rendererState.shadowMap);
             bgfx::setUniform(rendererState.uniforms.u_lightmapMtx, rendererState.lightmapMtx.data());
 
-            bgfx::submit(rendererState.RENDER_SCENE_ID, rendererState.sceneProgram);
+            bgfx::submit(RENDER_SCENE_ID, rendererState.sceneProgram);
         }
         
         for(auto const & e: entitySystem.filterByComponent<ModelInstance>()) {

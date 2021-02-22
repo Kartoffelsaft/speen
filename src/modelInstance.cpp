@@ -29,7 +29,7 @@ void ModelInstance::draw() const {
         bgfx::setVertexBuffer(0, prim.vertexBuffer);
         bgfx::setIndexBuffer(prim.indexBuffer);
 
-        bgfx::submit(rendererState.RENDER_SHADOW_ID, rendererState.shadowProgram);
+        bgfx::submit(RENDER_SHADOW_ID, rendererState.shadowProgram);
 
         bgfx::setUniform(rendererState.uniforms.u_modelMtx, orientation.data());
         bgfx::setUniform(rendererState.uniforms.u_lightmapMtx, rendererState.lightmapMtx.data());
@@ -47,7 +47,7 @@ void ModelInstance::draw() const {
         bgfx::setVertexBuffer(0, prim.vertexBuffer);
         bgfx::setIndexBuffer(prim.indexBuffer);
 
-        bgfx::submit(rendererState.RENDER_SCENE_ID, rendererState.sceneProgram);
+        bgfx::submit(RENDER_SCENE_ID, rendererState.sceneProgram);
     }
 
     bgfx::setTexture(0, rendererState.uniforms.u_shadowmap, rendererState.shadowMap);

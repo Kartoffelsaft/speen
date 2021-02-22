@@ -7,13 +7,19 @@
 #include "model.h"
 #include "mathUtils.h"
 
+int const WINDOW_WIDTH = 1280;
+int const WINDOW_HEIGHT = 720;
+char const * const WINDOW_NAME = "First bgfx";
+
+bgfx::ViewId const RENDER_SCENE_ID = 0;
+bgfx::ViewId const RENDER_SHADOW_ID = 1;
+
+int const SHADOW_MAP_SIZE = 1024;
+
 struct RendererState {
     static RendererState init();
 
     uint64_t frame = 0;
-    int const WINDOW_WIDTH = 1280;
-    int const WINDOW_HEIGHT = 720;
-    char const * const WINDOW_NAME = "First bgfx";
 
     SDL_Window* window;
     ModelLoader modelLoader;
@@ -23,10 +29,6 @@ struct RendererState {
     bgfx::ProgramHandle sceneProgram;
     bgfx::ProgramHandle shadowProgram;
 
-    bgfx::ViewId const RENDER_SCENE_ID = 0;
-    bgfx::ViewId const RENDER_SHADOW_ID = 1;
-
-    int const SHADOW_MAP_SIZE = 1024;
     bgfx::TextureHandle shadowMap;
     bgfx::FrameBufferHandle shadowMapBuffer;
 
@@ -39,6 +41,8 @@ struct RendererState {
         bgfx::UniformHandle u_modelMtx;
         bgfx::UniformHandle u_frame;
     } uniforms;
+    
+    void setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size);
 };
 
 extern RendererState rendererState;
