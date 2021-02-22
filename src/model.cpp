@@ -280,6 +280,12 @@ ModelLoader ModelLoader::init() {
 #include "../cookedModels/mokey.glb.h"
                 };
                 return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
+            }()},
+            {"./cookedModels/donut.glb.pmdl", [](){
+                uint8_t const data[] = {
+#include "../cookedModels/donut.glb.h"
+                };
+                return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
             }()}
         }
     };

@@ -21,6 +21,15 @@ int main(int argc, char** argv) {
     entitySystem.initComponent<ModelInstance>();
     entitySystem.initComponent<InputComponent>();
 
+    {
+        auto donut = entitySystem.newEntity();
+        entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
+        auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(donut)->orientation;
+        donutOrientation[12] = -5.f;
+        donutOrientation[13] = 2.f;
+        donutOrientation[14] = -5.f;
+    }
+
     auto mokey = entitySystem.newEntity();
     entitySystem.addComponent(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
     entitySystem.addComponent(mokey, InputComponent{
