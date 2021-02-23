@@ -10,8 +10,8 @@
 
 char const * const WINDOW_NAME = "First bgfx";
 
-bgfx::ViewId const RENDER_SCENE_ID = 0;
-bgfx::ViewId const RENDER_SHADOW_ID = 1;
+bgfx::ViewId const RENDER_SCENE_ID = 1;
+bgfx::ViewId const RENDER_SHADOW_ID = 0;
 
 struct RendererState {
     static RendererState init();
