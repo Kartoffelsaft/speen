@@ -6,6 +6,13 @@ struct Config {
     static Config init();
 
     struct {
+        int64_t resolutionX;
+        int64_t resolutionY;
+
+        int64_t shadowmapResolution;
+    } graphics;
+
+    struct {
         SDL_Keycode forward;
         SDL_Keycode back;
         SDL_Keycode left;

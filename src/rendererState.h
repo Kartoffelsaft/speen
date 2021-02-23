@@ -8,14 +8,10 @@
 #include "model.h"
 #include "mathUtils.h"
 
-int const WINDOW_WIDTH = 1280;
-int const WINDOW_HEIGHT = 720;
 char const * const WINDOW_NAME = "First bgfx";
 
 bgfx::ViewId const RENDER_SCENE_ID = 0;
 bgfx::ViewId const RENDER_SHADOW_ID = 1;
-
-int const SHADOW_MAP_SIZE = 1024;
 
 struct RendererState {
     static RendererState init();

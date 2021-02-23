@@ -3,6 +3,7 @@
 #include <bx/math.h>
 
 #include "rendererState.h"
+#include "config.h"
 
 bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t const len) {
     bgfx::Memory const * mem = bgfx::copy(data, len);
@@ -19,8 +20,8 @@ SDL_Window* initWindow() {
         WINDOW_NAME, 
         SDL_WINDOWPOS_UNDEFINED, 
         SDL_WINDOWPOS_UNDEFINED, 
-        WINDOW_WIDTH, 
-        WINDOW_HEIGHT, 
+        config.graphics.resolutionX, 
+        config.graphics.resolutionY, 
         SDL_WINDOW_SHOWN
     );
 
@@ -51,7 +52,7 @@ void initBgfx(SDL_Window * const window) {
 
     bgfx::init(i);
 
-    bgfx::reset(WINDOW_WIDTH, WINDOW_HEIGHT, BGFX_RESET_MSAA_X4);
+    bgfx::reset(config.graphics.resolutionX, config.graphics.resolutionY, BGFX_RESET_MSAA_X4);
 }
 
 RendererState RendererState::init() {
@@ -92,8 +93,8 @@ RendererState RendererState::init() {
     ret.shadowMapBuffer = [&](){
         std::vector<bgfx::TextureHandle> shadowmaps = {
             bgfx::createTexture2D(
-                SHADOW_MAP_SIZE,
-                SHADOW_MAP_SIZE,
+                config.graphics.shadowmapResolution,
+                config.graphics.shadowmapResolution,
                 false,
                 1,
                 bgfx::TextureFormat::RGBA8,
@@ -105,8 +106,8 @@ RendererState RendererState::init() {
         return bgfx::createFrameBuffer(shadowmaps.size(), shadowmaps.data(), true);
     }();
 
-    bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+    bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
+    bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, config.graphics.shadowmapResolution, config.graphics.shadowmapResolution);
     bgfx::setViewFrameBuffer(RENDER_SHADOW_ID, ret.shadowMapBuffer);
 
     ret.uniforms = {
@@ -153,7 +154,7 @@ void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to, float fov) 
     bx::mtxProj(
         projection.data(),
         fov,
-        (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT,
+        (float)config.graphics.resolutionX/(float)config.graphics.resolutionY,
         0.01f,
         1000.f,
         bgfx::getCaps()->homogeneousDepth
