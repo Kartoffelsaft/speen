@@ -1,7 +1,5 @@
 #include "entitySystem.h"
 
-EntitySystem entitySystem;
-
 EntityId EntitySystem::newEntity() {
     auto const nid = nextEntityId++;
     entities.insert(nid);

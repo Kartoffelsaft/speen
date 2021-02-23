@@ -61,8 +61,6 @@ RendererState RendererState::init() {
     
     initBgfx(ret.window);
 
-    ret.modelLoader = ModelLoader::init();
-
     ret.sceneProgram = [](){
         auto vertShader = [](){
             #include "../shaderBuild/vert.h"
@@ -164,4 +162,3 @@ void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to, float fov) 
     bgfx::setViewTransform(RENDER_SCENE_ID, view.data(), projection.data());
 }
 
-RendererState rendererState = RendererState::init();

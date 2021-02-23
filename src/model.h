@@ -32,8 +32,6 @@ struct Model {
     std::vector<Primitive> primitives;
 };
 
-#define LOAD_MODEL(MODEL_NAME) rendererState.modelLoader.getModel("./cookedModels/" MODEL_NAME ".pmdl")
-
 struct ModelLoader {
     static ModelLoader init();
 
@@ -41,5 +39,7 @@ struct ModelLoader {
 
     std::map<std::string, std::shared_ptr<Model const>> loadedModels;
 };
+
+#define LOAD_MODEL(MODEL_NAME) modelLoader.getModel("./cookedModels/" MODEL_NAME ".pmdl")
 
 extern ModelLoader modelLoader;

@@ -14,6 +14,7 @@
 #include "modelInstance.h"
 #include "entitySystem.h"
 #include "input.h"
+#include "config.h"
 
 int main(int argc, char** argv) {
     bgfx::setDebug(BGFX_DEBUG_STATS);
@@ -39,27 +40,19 @@ int main(int argc, char** argv) {
                 Mat4 delta;
                 bx::mtxIdentity(delta.data());
                 if(event.type == SDL_KEYDOWN) {
-                    switch(event.key.keysym.scancode) {
-                        case SDL_SCANCODE_W:
-                            delta[12] -= 0.1;
-                            break;
-                        case SDL_SCANCODE_S:
-                            delta[12] += 0.1;
-                            break;
-                        case SDL_SCANCODE_A:
-                            delta[14] -= 0.1;
-                            break;
-                        case SDL_SCANCODE_D:
-                            delta[14] += 0.1;
-                            break;
-                        case SDL_SCANCODE_R:
-                            delta[13] += 0.1;
-                            break;
-                        case SDL_SCANCODE_F:
-                            delta[13] -= 0.1;
-                            break;
-                        default:
-                            break;
+                    // of course it refuses for this to be a switch case
+                    if(event.key.keysym.sym == config.keybindings.forward) {
+                        delta[12] -= 0.1;
+                    } else if(event.key.keysym.sym == config.keybindings.back) {
+                        delta[12] += 0.1;
+                    } else if(event.key.keysym.sym == config.keybindings.left) {
+                        delta[14] -= 0.1;
+                    } else if(event.key.keysym.sym == config.keybindings.right) {
+                        delta[14] += 0.1;
+                    } else if(event.key.keysym.sym == config.keybindings.up) {
+                        delta[13] += 0.1;
+                    } else if(event.key.keysym.sym == config.keybindings.down) {
+                        delta[13] -= 0.1;
                     }
                     Mat4 tmp;
                     bx::mtxMul(tmp.data(), model->orientation.data(), delta.data());

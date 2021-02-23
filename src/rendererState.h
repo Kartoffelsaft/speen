@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bgfx/bgfx.h>
+#include <bx/math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 

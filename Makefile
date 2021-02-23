@@ -25,7 +25,8 @@ INCLUDES := \
     -Ibgfx/include \
     -Ibx/include \
     -Ibimg/include \
-    -Itinygltf
+    -Itinygltf \
+    -Itomlplusplus/include
 
 DEFINES := 
 

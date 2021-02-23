@@ -7,3 +7,4 @@ temp
 .build
 *.kdev4
 *.kate*
+settings.toml

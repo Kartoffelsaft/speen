@@ -10,3 +10,6 @@
 [submodule "tinygltf"]
 	path = tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+[submodule "tomlplusplus"]
+	path = tomlplusplus
+	url = https://github.com/marzer/tomlplusplus.git
