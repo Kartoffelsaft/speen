@@ -11,6 +11,9 @@ std::string const defaultSettings = R"TOML(
 [graphics]
 resolutionX = 1280
 resolutionY = 720
+# Possible values: 1, 2, 4, 8, 16
+msaa = 4
+vsync = true
 
 shadowmapResolution = 1024
 
@@ -38,6 +41,8 @@ Config Config::init() {
         .graphics {
             .resolutionX = **settingsData["graphics"]["resolutionX"].as_integer(),
             .resolutionY = **settingsData["graphics"]["resolutionY"].as_integer(),
+            .msaa        = **settingsData["graphics"]["msaa"].as_integer(),
+            .vsync       = **settingsData["graphics"]["vsync"].as_boolean(),
 
             .shadowmapResolution = **settingsData["graphics"]["shadowmapResolution"].as_integer(),
         },

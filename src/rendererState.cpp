@@ -52,7 +52,16 @@ void initBgfx(SDL_Window * const window) {
 
     bgfx::init(i);
 
-    bgfx::reset(config.graphics.resolutionX, config.graphics.resolutionY, BGFX_RESET_MSAA_X4);
+    bgfx::reset(
+        config.graphics.resolutionX, 
+        config.graphics.resolutionY, 
+       (config.graphics.vsync? BGFX_RESET_VSYNC : 0)
+      |(config.graphics.msaa == 2?  BGFX_RESET_MSAA_X2:
+        config.graphics.msaa == 4?  BGFX_RESET_MSAA_X4:
+        config.graphics.msaa == 8?  BGFX_RESET_MSAA_X8:
+        config.graphics.msaa == 16? BGFX_RESET_MSAA_X16:
+        0)
+    );
 }
 
 RendererState RendererState::init() {

@@ -8,9 +8,9 @@ uniform vec4 u_frame;
 
 void main() {
     vec2 shadowSampleCoord = v_lightmapCoord.xy + vec2(
-        rand2(vec2(v_lightmapCoord.x, u_frame.x)) - 0.5, 
-        rand2(vec2(v_lightmapCoord.y, u_frame.x)) - 0.5
-    ) * 0.0013;
+        rand2(vec2(rand(v_lightmapCoord.x) * v_lightmapCoord.y, u_frame.x * 0.34)) - 0.5, 
+        rand2(vec2(rand(v_lightmapCoord.y) * v_lightmapCoord.x, u_frame.x * 0.96)) - 0.5
+    ) * 0.0003;
 
     vec4 shadowInfo = texture2D(u_shadowmap, shadowSampleCoord);
 
@@ -19,7 +19,7 @@ void main() {
         brightness = 0.6;
     }
 
-    brightness += dot(v_lightNormal, vec3(0.0, -1.0, 0.0)) * 0.05 + 0.05;
+    brightness += dot(v_lightNormal, vec3(0.0, 1.0, 0.0)) * 0.05 + 0.05;
 
     gl_FragColor = vec4(
         v_color0.r * shadowInfo.r * brightness, 

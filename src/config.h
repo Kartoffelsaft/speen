@@ -8,6 +8,8 @@ struct Config {
     struct {
         int64_t resolutionX;
         int64_t resolutionY;
+        int64_t msaa;
+        bool vsync;
 
         int64_t shadowmapResolution;
     } graphics;

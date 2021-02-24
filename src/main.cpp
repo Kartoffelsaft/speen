@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 
         bgfx::setUniform(
             rendererState.uniforms.u_frame, 
-            std::vector<float>{rendererState.frame / 10000.f, 0.0, 0.0, 0.0}.data()
+            std::vector<float>{rendererState.frame / 1000.f, 0.0, 0.0, 0.0}.data()
         );
 
         bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
