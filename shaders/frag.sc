@@ -7,10 +7,16 @@ uniform sampler2D u_shadowmap;
 uniform vec4 u_frame;
 
 void main() {
+/*
     vec2 shadowSampleCoord = v_lightmapCoord.xy + vec2(
         rand2(vec2(rand(v_lightmapCoord.x) * v_lightmapCoord.y, u_frame.x * 0.34)) - 0.5, 
         rand2(vec2(rand(v_lightmapCoord.y) * v_lightmapCoord.x, u_frame.x * 0.96)) - 0.5
     ) * 0.0003;
+*/
+    vec2 shadowSampleCoord = v_lightmapCoord.xy + vec2(
+        rand2(vec2(rand(gl_FragCoord.x * 0.3), gl_FragCoord.y * 0.5)) - 0.5,
+        rand2(vec2(rand(gl_FragCoord.y * 0.4), gl_FragCoord.x * 0.1)) - 0.5
+    ) * 0.0014;
 
     vec4 shadowInfo = texture2D(u_shadowmap, shadowSampleCoord);
 
