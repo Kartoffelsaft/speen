@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
         entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
         auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(donut)->orientation;
         donutOrientation[12] = -5.f;
-        donutOrientation[13] = 2.f;
+        donutOrientation[13] = 1.f;
         donutOrientation[14] = -5.f;
     }
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
         );
 
         bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
-        bgfx::setViewClear(RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xff00ffff);
+        bgfx::setViewClear(RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x8899ffff);
 
         {
             std::vector<bgfx::ViewId> viewOrder = {
