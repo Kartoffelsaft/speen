@@ -15,6 +15,7 @@
 #include "entitySystem.h"
 #include "input.h"
 #include "config.h"
+#include "chunk.h"
 
 int main(int argc, char** argv) {
     bgfx::setDebug(BGFX_DEBUG_STATS);
@@ -29,6 +30,17 @@ int main(int argc, char** argv) {
         donutOrientation[12] = -5.f;
         donutOrientation[13] = 2.f;
         donutOrientation[14] = -5.f;
+    }
+
+    {
+        auto terrain = entitySystem.newEntity();
+        auto chunk = Chunk::generate();
+        static auto terrainModel = std::make_shared<Model>(chunk.asModel());
+        entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(terrainModel));
+        auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
+        terrainOrientation[12] = -8.f;
+        terrainOrientation[13] = -1.f;
+        terrainOrientation[14] = -8.f;
     }
 
     auto mokey = entitySystem.newEntity();
@@ -67,39 +79,6 @@ int main(int argc, char** argv) {
             );
         }
     });
-
-    struct planeVertex {
-        float x, y, z;
-        uint32_t abgr;
-    };
-    std::vector<planeVertex> const planeVertecies = {
-        { -30.f, -2.f, -30.f, 0xff00ffff },
-        { -30.f, -2.f,  30.f, 0xffff00ff },
-        {  30.f, -2.f, -30.f, 0xffffff00 },
-        {  30.f, -2.f,  30.f, 0xffffffff },
-    };
-
-    std::vector<uint32_t> const planeIndicies {
-        0, 1, 2,
-        2, 1, 3
-    };
-
-    auto planeLayout = bgfx::VertexLayout();
-    planeLayout
-        .begin()
-        .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-        .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-        .end();
-
-    auto planeVertexBuffer = bgfx::createVertexBuffer(
-        bgfx::makeRef(planeVertecies.data(), planeVertecies.size() * sizeof(planeVertex)), 
-        planeLayout
-    );
-    auto planeIndexBuffer = bgfx::createIndexBuffer(
-        bgfx::makeRef(planeIndicies.data(), planeIndicies.size() * sizeof(uint32_t)),
-        BGFX_BUFFER_INDEX32
-    );
-
     while(!rendererState.windowShouldClose) {
         std::vector<SDL_Event> events;
         do {
@@ -132,48 +111,7 @@ int main(int argc, char** argv) {
 
             bgfx::setViewOrder(0, viewOrder.size(), viewOrder.data());
         }
-
-        {
-            Mat4 trans;
-            bx::mtxIdentity(trans.data());
-/*
-            // it's refusing to do the depth test and I'm pissed
-            // since it's behind everything else anyway I'll go without drawing it
-            bgfx::setState(
-                BGFX_STATE_WRITE_RGB
-              | BGFX_STATE_WRITE_A
-              | BGFX_STATE_WRITE_Z
-              | BGFX_STATE_CULL_CCW
-              | BGFX_STATE_DEPTH_TEST_LESS
-            );
-
-            bgfx::setTransform(trans.data());
-
-            bgfx::setVertexBuffer(0, planeVertexBuffer);
-            bgfx::setIndexBuffer(planeIndexBuffer);
-
-            bgfx::submit(RENDER_SHADOW_ID, shadowProgram);
-*/
-            bgfx::setState(
-                BGFX_STATE_WRITE_RGB
-              | BGFX_STATE_WRITE_A
-              | BGFX_STATE_WRITE_Z
-              | BGFX_STATE_CULL_CCW
-              | BGFX_STATE_DEPTH_TEST_LESS
-            );
-
-            bgfx::setTransform(trans.data());
-            bgfx::setUniform(rendererState.uniforms.u_modelMtx, trans.data());
-
-            bgfx::setVertexBuffer(0, planeVertexBuffer);
-            bgfx::setIndexBuffer(planeIndexBuffer);
-
-            bgfx::setTexture(0, rendererState.uniforms.u_shadowmap, rendererState.shadowMap);
-            bgfx::setUniform(rendererState.uniforms.u_lightmapMtx, rendererState.lightmapMtx.data());
-
-            bgfx::submit(RENDER_SCENE_ID, rendererState.sceneProgram);
-        }
-        
+       
         for(auto const & e: entitySystem.filterByComponent<ModelInstance>()) {
             entitySystem.getComponentData<ModelInstance>(e)->draw();
         }
