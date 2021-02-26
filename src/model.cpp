@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -19,7 +21,7 @@ Model Model::loadFromGLBData(
         size
     );
 
-    if(err.size() > 0) {
+    if(!err.empty()) {
         fprintf(stderr, "Error loading file: %s\n", err.c_str());
     }
 
@@ -39,7 +41,7 @@ Model Model::loadFromGLBFile(
         file
     );
 
-    if(err.size() > 0) {
+    if(!err.empty()) {
         fprintf(stderr, "Error loading file: %s\n", err.c_str());
     }
 
@@ -47,7 +49,7 @@ Model Model::loadFromGLBFile(
 }
 
 Model Model::loadFromGLTFModel(
-    tinygltf::Model const model
+    tinygltf::Model const & model
 ) {
     decltype(primitives) retPrimitives;
     
@@ -104,14 +106,14 @@ Model Model::loadFromGLTFModel(
             
             // Three star programming in action!\s
             // Basically, the attribute gives an index into an accessor, which gives 
-            // an index into a bufferview, which gives an index into a buffer
+            // an index into a bufferView, which gives an index into a buffer
             // and each of those has it's own little nibble of data needed for later
             tinygltf::Accessor const & accessor = model.accessors[rawPrimitive.attributes.at("POSITION")];
             tinygltf::BufferView const & bufferView = model.bufferViews[accessor.bufferView];
             tinygltf::Buffer const & buffer = model.buffers[bufferView.buffer];
 
             // This is a similar thing to vertexElementSize += 3 * sizeof(float), but set up for 
-            // bgfx to be able to understand the vertex data it recieves
+            // bgfx to be able to understand the vertex data it receives
             retLayout.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float);
             
             // Technically works without this line, but doing this helps because this will be one
@@ -131,7 +133,7 @@ Model Model::loadFromGLTFModel(
             // there will be n normals, n texCoords, etc.
             vertexCount = accessor.count;
         } else {
-            fprintf(stderr, "A 3D model without vertecies is a little odd, don't you think?\n");
+            fprintf(stderr, "A 3D model without vertices is a little odd, don't you think?\n");
         }
 
         auto colorOffset = vertexElementSize;
@@ -217,10 +219,10 @@ Model Model::loadFromGLTFModel(
         // an unpacked array. i.e.:
         // { a1, a2, a3, ..., b1, b2, b3, ... c1, c2, c3, ... } to
         // { a1, b1, c1, a2, b2, c2, a3, b3, c3, ... }
-        // where a, b, and c are types and the numbers are indicies
+        // where a, b, and c are types and the numbers are indices
         
         std::vector<uint8_t> retVertexVector(vertexCount * vertexElementSize);
-        if(positions.size() > 0) for(int i = 0; i < vertexCount; i++) {
+        if(!positions.empty()) for(int i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 0)
                 = positions[i*3 + 0];
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 1)
@@ -228,7 +230,7 @@ Model Model::loadFromGLTFModel(
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 2)
                 = positions[i*3 + 2];
         }
-        if(colors.size() > 0) for(int i = 0; i < vertexCount; i++) {
+        if(!colors.empty()) for(int i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 0)
                 = colors[i*4 + 0];
             *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 1)
@@ -238,7 +240,7 @@ Model Model::loadFromGLTFModel(
             *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 3)
                 = colors[i*4 + 3];
         }
-        if(normals.size() > 0) for(int i = 0; i < vertexCount; i++) {
+        if(!normals.empty()) for(int i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 0)
                 = normals[i*3 + 0];
             *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 1)
@@ -269,7 +271,7 @@ Model Model::loadFromGLTFModel(
     };
 }
 
-tinygltf::TinyGLTF gltfLoader;
+tinygltf::TinyGLTF gltfLoader; // NOLINT(cert-err58-cpp)
 
 ModelLoader ModelLoader::init() {
 #ifdef EMBED_MODEL_FILES
@@ -306,3 +308,5 @@ std::weak_ptr<Model const> ModelLoader::getModel(
 }
 
 
+
+#pragma clang diagnostic pop

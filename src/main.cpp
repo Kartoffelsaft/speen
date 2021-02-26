@@ -1,12 +1,9 @@
-#include <stdio.h>
 #include <vector>
-#include <array>
-#include <string>
 #include <chrono>
 #include <thread>
 #include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
-#include <bx/math.h>
+// For whatever reason the linter is convinced I'm trying to include C's math.h
+#include <bx/math.h> // NOLINT(modernize-deprecated-headers)
 
 #include "model.h"
 #include "rendererState.h"
@@ -17,7 +14,7 @@
 #include "config.h"
 #include "chunk.h"
 
-int main(int argc, char** argv) {
+int main() {
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
     entitySystem.initComponent<ModelInstance>();
@@ -46,7 +43,7 @@ int main(int argc, char** argv) {
     auto mokey = entitySystem.newEntity();
     entitySystem.addComponent(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
     entitySystem.addComponent(mokey, InputComponent{
-        .onInput = [](std::vector<SDL_Event> const events, EntityId const id) {
+        .onInput = [](std::vector<SDL_Event> const & events, EntityId const id) {
             auto* model = entitySystem.getComponentData<ModelInstance>(id);
             for(auto const & event: events) {
                 Mat4 delta;

@@ -10,7 +10,7 @@
 struct Model {
     static Model loadFromGLBData(
         tinygltf::TinyGLTF& loader, 
-        uint8_t const * const data, 
+        uint8_t const * const data,
         size_t const size
     );
 
@@ -20,7 +20,7 @@ struct Model {
     );
 
     static Model loadFromGLTFModel(
-        tinygltf::Model const model
+        tinygltf::Model const & model
     );
 
     struct Primitive {

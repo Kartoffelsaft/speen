@@ -7,5 +7,6 @@ temp
 .build
 *.kdev4
 *.kate*
+.idea
 settings.toml
 temp

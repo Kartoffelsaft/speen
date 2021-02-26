@@ -6,7 +6,7 @@
 #include "mathUtils.h"
 
 struct ModelInstance {
-    static ModelInstance fromModelPtr(std::weak_ptr<Model const> const nModel);
+    static ModelInstance fromModelPtr(std::weak_ptr<Model const> const & nModel);
 
     std::weak_ptr<Model const> model;
     Mat4 orientation;

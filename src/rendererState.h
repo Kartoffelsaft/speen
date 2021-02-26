@@ -1,7 +1,7 @@
 #pragma once
 
 #include <bgfx/bgfx.h>
-#include <bx/math.h>
+#include <bx/math.h> // NOLINT(modernize-deprecated-headers)
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 
@@ -29,12 +29,12 @@ struct RendererState {
     bgfx::TextureHandle shadowMap;
     bgfx::FrameBufferHandle shadowMapBuffer;
 
-    Mat4 lightmapMtx;
+    Mat4 lightMapMtx;
 
     struct {
-        bgfx::UniformHandle u_shadowmap;
+        bgfx::UniformHandle u_shadowMap;
         bgfx::UniformHandle u_lightDirMtx;
-        bgfx::UniformHandle u_lightmapMtx;
+        bgfx::UniformHandle u_lightMapMtx;
         bgfx::UniformHandle u_modelMtx;
         bgfx::UniformHandle u_frame;
     } uniforms;

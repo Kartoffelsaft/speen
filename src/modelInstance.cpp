@@ -1,9 +1,9 @@
-#include <bx/math.h>
+#include <bx/math.h> // NOLINT(modernize-deprecated-headers)
 
 #include "modelInstance.h"
 #include "rendererState.h"
 
-ModelInstance ModelInstance::fromModelPtr(std::weak_ptr<Model const> const nModel) {
+ModelInstance ModelInstance::fromModelPtr(std::weak_ptr<Model const> const & nModel) {
     Mat4 nOrientation;
     bx::mtxIdentity(nOrientation.data());
 
@@ -32,7 +32,7 @@ void ModelInstance::draw() const {
         bgfx::submit(RENDER_SHADOW_ID, rendererState.shadowProgram);
 
         bgfx::setUniform(rendererState.uniforms.u_modelMtx, orientation.data());
-        bgfx::setUniform(rendererState.uniforms.u_lightmapMtx, rendererState.lightmapMtx.data());
+        bgfx::setUniform(rendererState.uniforms.u_lightMapMtx, rendererState.lightMapMtx.data());
         bgfx::setState(
             BGFX_STATE_WRITE_RGB
           | BGFX_STATE_WRITE_A
@@ -50,5 +50,5 @@ void ModelInstance::draw() const {
         bgfx::submit(RENDER_SCENE_ID, rendererState.sceneProgram);
     }
 
-    bgfx::setTexture(0, rendererState.uniforms.u_shadowmap, rendererState.shadowMap);
+    bgfx::setTexture(0, rendererState.uniforms.u_shadowMap, rendererState.shadowMap);
 }

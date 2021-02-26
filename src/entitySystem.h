@@ -12,6 +12,7 @@ using EntityId = std::size_t;
 struct Component {
     // So that the type doesn't have to be known to do certain things
     virtual void removeEntity(EntityId const) {/* dummy */}
+    [[nodiscard]]
     virtual bool containsEntity(EntityId const) const { return false; }
 };
 
@@ -19,6 +20,7 @@ template<typename T>
 struct ComponentType: std::unordered_map<EntityId, T>, Component {
     static constexpr ComponentId id() { return typeid(T).hash_code(); }
     void removeEntity(EntityId const id) override { this->erase(id); }
+    [[nodiscard]]
     bool containsEntity(EntityId const id) const override { return this->contains(id); }
 };
 
@@ -28,7 +30,7 @@ struct EntitySystem {
     EntityId newEntity();
     void removeEntity(EntityId const id);
 
-    // c++ requires templates to be instatiable from where they are used, so
+    // c++ requires templates to be instantiable from where they are used, so
     // these definitions are stuck here
     template<typename T>
     void initComponent() {

@@ -5,6 +5,7 @@
 Chunk Chunk::generate() {
     return {
         // refuses to compile if not wrapped in a constructor (???)
+        // and refuses to lint if it is (?????)
         // looks stupid anyways, will probably change this soon
         .tiles = std::array<Tile, 16 * 16>({
             {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {2}, {2}, 
@@ -27,19 +28,22 @@ Chunk Chunk::generate() {
     };
 }
 
+#pragma clang diagnostic push
+// because we all know information is lost when converting from 5 to 5.0
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 Model Chunk::asModel() {
-    std::vector<float> vertecies;
-    std::vector<uint32_t> indicies;
-    vertecies.reserve(this->tiles.size() * (3 + 4));
-    indicies.reserve((this->tiles.size() - 15) * 3 * 2);
+    std::vector<float> vertices;
+    std::vector<uint32_t> indices;
+    vertices.reserve(this->tiles.size() * (3 + 4));
+    indices.reserve((this->tiles.size() - 15) * 3 * 2);
     for(int i = 0; i < this->tiles.size(); i++) {
-        vertecies.push_back((float)(i % 16));
-        vertecies.push_back((float)(this->tiles[i].height) * 0.35);
-        vertecies.push_back((float)(i / 16));
-        vertecies.push_back(this->tiles[i].height * 0.01f + 0.05f);
-        vertecies.push_back(this->tiles[i].height * 0.03f + 0.6f);
-        vertecies.push_back(this->tiles[i].height * 0.01f + 0.2f);
-        vertecies.push_back(1.f);
+        vertices.push_back((float)(i % 16));
+        vertices.push_back((float)(this->tiles[i].height) * 0.35);
+        vertices.push_back((float)(i / 16)); // NOLINT(bugprone-integer-division)
+        vertices.push_back(this->tiles[i].height * 0.01f + 0.05f);
+        vertices.push_back(this->tiles[i].height * 0.03f + 0.6f);
+        vertices.push_back(this->tiles[i].height * 0.01f + 0.2f);
+        vertices.push_back(1.f);
     }
     // the tris are shaped like this:
     // t t t t t    ┌─┬─┬─┬─┐
@@ -59,23 +63,23 @@ Model Chunk::asModel() {
         for(auto ni: {
             xtile, xtile - 16, xtile - 17, 
             xtile, xtile - 17, xtile - 1
-        }) { indicies.push_back(ni); }
+        }) { indices.push_back(ni); }
         if(!onBottomEdge) for(auto ni: {
             xtile, xtile - 1,  xtile + 15, 
             xtile, xtile + 15, xtile + 16
-        }) { indicies.push_back(ni); }
+        }) { indices.push_back(ni); }
         if(!onRightEdge) for(auto ni: {
             xtile, xtile - 15, xtile - 16, 
             xtile, xtile + 1,  xtile - 15
-        }) { indicies.push_back(ni); }
+        }) { indices.push_back(ni); }
         if((!onBottomEdge) && (!onRightEdge)) for(auto ni: {
             xtile, xtile + 16, xtile + 17, 
             xtile, xtile + 17, xtile + 1
-        }) { indicies.push_back(ni); }
+        }) { indices.push_back(ni); }
     }
 
-    auto vertexData = bgfx::copy(vertecies.data(), vertecies.size() * sizeof(float));
-    auto indexData = bgfx::copy(indicies.data(), indicies.size() * sizeof(uint32_t));
+    auto vertexData = bgfx::copy(vertices.data(), vertices.size() * sizeof(float));
+    auto indexData = bgfx::copy(indices.data(), indices.size() * sizeof(uint32_t));
     bgfx::VertexLayout layout;
     layout
         .begin()
@@ -91,3 +95,4 @@ Model Chunk::asModel() {
         }}
     };
 }
+#pragma clang diagnostic pop

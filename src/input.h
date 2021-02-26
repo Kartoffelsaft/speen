@@ -5,5 +5,5 @@
 #include "entitySystem.h"
 
 struct InputComponent {
-    void (*onInput)(std::vector<SDL_Event> const, EntityId const);
+    void (*onInput)(std::vector<SDL_Event> const &, EntityId const);
 };

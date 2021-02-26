@@ -1,6 +1,6 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
-#include <bx/math.h>
+#include <bx/math.h> // NOLINT(modernize-deprecated-headers)
 
 #include "rendererState.h"
 #include "config.h"
@@ -100,10 +100,10 @@ RendererState RendererState::init() {
     }();
 
     ret.shadowMapBuffer = [&](){
-        std::vector<bgfx::TextureHandle> shadowmaps = {
+        std::vector<bgfx::TextureHandle> shadowMaps = {
             bgfx::createTexture2D(
-                config.graphics.shadowmapResolution,
-                config.graphics.shadowmapResolution,
+                config.graphics.shadowMapResolution,
+                config.graphics.shadowMapResolution,
                 false,
                 1,
                 bgfx::TextureFormat::RGBA8,
@@ -111,18 +111,18 @@ RendererState RendererState::init() {
             )
         };
 
-        ret.shadowMap = shadowmaps.at(0);
-        return bgfx::createFrameBuffer(shadowmaps.size(), shadowmaps.data(), true);
+        ret.shadowMap = shadowMaps.at(0);
+        return bgfx::createFrameBuffer(shadowMaps.size(), shadowMaps.data(), true);
     }();
 
     bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
-    bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, config.graphics.shadowmapResolution, config.graphics.shadowmapResolution);
+    bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, config.graphics.shadowMapResolution, config.graphics.shadowMapResolution);
     bgfx::setViewFrameBuffer(RENDER_SHADOW_ID, ret.shadowMapBuffer);
 
     ret.uniforms = {
-        .u_shadowmap   = bgfx::createUniform("u_shadowmap", bgfx::UniformType::Sampler),
+        .u_shadowMap   = bgfx::createUniform("u_shadowMap", bgfx::UniformType::Sampler),
         .u_lightDirMtx = bgfx::createUniform("u_lightDirMtx", bgfx::UniformType::Mat4),
-        .u_lightmapMtx = bgfx::createUniform("u_lightmapMtx", bgfx::UniformType::Mat4),
+        .u_lightMapMtx = bgfx::createUniform("u_lightMapMtx", bgfx::UniformType::Mat4),
         .u_modelMtx    = bgfx::createUniform("u_modelMtx", bgfx::UniformType::Mat4),
         // why does bgfx not have float/int uniforms? ugh.
         .u_frame       = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4)
@@ -151,7 +151,7 @@ void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size){
     );
 
     bgfx::setViewTransform(RENDER_SHADOW_ID, lightView.data(), lightProjection.data());
-    bx::mtxMul(this->lightmapMtx.data(), lightView.data(), lightProjection.data());
+    bx::mtxMul(this->lightMapMtx.data(), lightView.data(), lightProjection.data());
     bgfx::setUniform(this->uniforms.u_lightDirMtx, lightView.data());
 }
 

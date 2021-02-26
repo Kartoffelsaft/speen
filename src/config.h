@@ -11,7 +11,7 @@ struct Config {
         int64_t msaa;
         bool vsync;
 
-        int64_t shadowmapResolution;
+        int64_t shadowMapResolution;
     } graphics;
 
     struct {

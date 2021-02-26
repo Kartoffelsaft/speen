@@ -15,7 +15,7 @@ resolutionY = 720
 msaa = 4
 vsync = true
 
-shadowmapResolution = 1024
+shadowMapResolution = 1024
 
 # Possible control settings listed at https://wiki.libsdl.org/SDL_Keycode
 [controls]
@@ -44,7 +44,7 @@ Config Config::init() {
             .msaa        = **settingsData["graphics"]["msaa"].as_integer(),
             .vsync       = **settingsData["graphics"]["vsync"].as_boolean(),
 
-            .shadowmapResolution = **settingsData["graphics"]["shadowmapResolution"].as_integer(),
+            .shadowMapResolution = **settingsData["graphics"]["shadowMapResolution"].as_integer(),
         },
 
         .keybindings {
