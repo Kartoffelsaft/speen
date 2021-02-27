@@ -20,6 +20,8 @@ int main() {
     entitySystem.initComponent<ModelInstance>();
     entitySystem.initComponent<InputComponent>();
 
+    InputState inputState;
+
     {
         auto donut = entitySystem.newEntity();
         entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
@@ -43,31 +45,26 @@ int main() {
     auto mokey = entitySystem.newEntity();
     entitySystem.addComponent(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
     entitySystem.addComponent(mokey, InputComponent{
-        .onInput = [](std::vector<SDL_Event> const & events, EntityId const id) {
+        .onInput = [](InputState const & inputs, EntityId const id) {
             auto* model = entitySystem.getComponentData<ModelInstance>(id);
-            for(auto const & event: events) {
-                Mat4 delta;
-                bx::mtxIdentity(delta.data());
-                if(event.type == SDL_KEYDOWN) {
-                    // of course it refuses for this to be a switch case
-                    if(event.key.keysym.sym == config.keybindings.forward) {
-                        delta[12] -= 0.1;
-                    } else if(event.key.keysym.sym == config.keybindings.back) {
-                        delta[12] += 0.1;
-                    } else if(event.key.keysym.sym == config.keybindings.left) {
-                        delta[14] -= 0.1;
-                    } else if(event.key.keysym.sym == config.keybindings.right) {
-                        delta[14] += 0.1;
-                    } else if(event.key.keysym.sym == config.keybindings.up) {
-                        delta[13] += 0.1;
-                    } else if(event.key.keysym.sym == config.keybindings.down) {
-                        delta[13] -= 0.1;
-                    }
-                    Mat4 tmp;
-                    bx::mtxMul(tmp.data(), model->orientation.data(), delta.data());
-                    model->orientation = tmp;
-                }
+            Mat4 delta;
+            bx::mtxIdentity(delta.data());
+            if(inputs.keysHeld.contains(config.keybindings.forward)) {
+                delta[12] -= 0.1;
+            } if(inputs.keysHeld.contains(config.keybindings.back)) {
+                delta[12] += 0.1;
+            } if(inputs.keysHeld.contains(config.keybindings.left)) {
+                delta[14] -= 0.1;
+            } if(inputs.keysHeld.contains(config.keybindings.right)) {
+                delta[14] += 0.1;
+            } if(inputs.keysHeld.contains(config.keybindings.up)) {
+                delta[13] += 0.1;
+            } if(inputs.keysHeld.contains(config.keybindings.down)) {
+                delta[13] -= 0.1;
             }
+            Mat4 tmp;
+            bx::mtxMul(tmp.data(), model->orientation.data(), delta.data());
+            model->orientation = tmp;
 
             rendererState.setCameraOrientation(
                 {model->orientation[12] + 5, model->orientation[13] + 5, model->orientation[14] + 5},
@@ -77,19 +74,10 @@ int main() {
         }
     });
     while(!rendererState.windowShouldClose) {
-        std::vector<SDL_Event> events;
-        do {
-            events.emplace_back();
-        } while(SDL_PollEvent(&events.back()));
-        events.pop_back(); // last event doesn't have anything in it
-        
-        for(auto const & e: events) if(e.type == SDL_QUIT) {
-            rendererState.windowShouldClose = true;
-        }
-        
+        inputState.updateInputs();
         for(auto const & entity: entitySystem.filterByComponent<InputComponent>()) {
             auto* const inputHandler = entitySystem.getComponentData<InputComponent>(entity);
-            inputHandler->onInput(events, entity);
+            inputHandler->onInput(inputState, entity);
         }
 
         bgfx::setUniform(

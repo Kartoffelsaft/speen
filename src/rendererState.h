@@ -29,7 +29,7 @@ struct RendererState {
     bgfx::TextureHandle shadowMap;
     bgfx::FrameBufferHandle shadowMapBuffer;
 
-    Mat4 lightMapMtx;
+    Mat4 lightmapMtx;
 
     struct {
         bgfx::UniformHandle u_shadowMap;
