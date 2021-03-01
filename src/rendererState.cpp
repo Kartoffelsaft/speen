@@ -128,7 +128,7 @@ RendererState RendererState::init() {
         .u_frame       = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4)
     };
     
-    ret.setLightOrientation({-5, 3, 4}, {0, 0, 0}, 20);
+    ret.setLightOrientation({-10, 5, 7}, {0, 0, 0}, 30);
 
     return ret;
 }
@@ -144,8 +144,8 @@ void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size){
         size, 
         -size, 
         size, 
-        -size, 
-        size, 
+        -size,
+        size,
         0.f, 
         bgfx::getCaps()->homogeneousDepth
     );
