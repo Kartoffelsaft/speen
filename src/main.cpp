@@ -66,10 +66,22 @@ int main() {
             bx::mtxMul(tmp.data(), model->orientation.data(), delta.data());
             model->orientation = tmp;
 
+            float& posX = model->orientation[12];
+            float& posY = model->orientation[13];
+            float& posZ = model->orientation[14];
+
+            int chunkX = (int)posX / 16;
+            int chunkZ = (int)posZ / 16;
+
             rendererState.setCameraOrientation(
-                {model->orientation[12] + 5, model->orientation[13] + 5, model->orientation[14] + 5},
-                {model->orientation[12], model->orientation[13], model->orientation[14]},
+                {posX + 5, posY + 5, posZ + 5},
+                {posX, posY, posZ},
                 60
+            );
+            rendererState.setLightOrientation(
+                {(float)chunkX * 16 - 10, 5, (float)chunkZ * 16 + 7},
+                {(float)chunkX * 16, 0, (float)chunkZ * 16},
+                40
             );
         }
     });
