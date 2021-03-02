@@ -12,7 +12,13 @@ struct Tile {
 struct Chunk {
     std::array<Tile, 16 * 16> tiles;
 
-    Model::Primitive asPrimitive(int chunkOffsetX, int chunkOffsetZ);
+    Model::Primitive asPrimitive(
+        int chunkOffsetX,
+        int chunkOffsetZ,
+        std::optional<Chunk> rightChunk,
+        std::optional<Chunk> bottomChunk,
+        std::optional<Chunk> bottomRightChunk
+    );
 
     static Chunk generate();
 
