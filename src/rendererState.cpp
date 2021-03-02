@@ -131,7 +131,7 @@ RendererState RendererState::init() {
     return ret;
 }
 
-void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size){
+void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth){
     Mat4 lightView;
     bx::mtxLookAt(lightView.data(), from, to);
 
@@ -142,8 +142,8 @@ void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size){
         size, 
         -size, 
         size, 
-        -size,
-        size,
+        -depth,
+        depth,
         0.f, 
         bgfx::getCaps()->homogeneousDepth
     );

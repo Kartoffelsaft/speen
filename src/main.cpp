@@ -33,8 +33,8 @@ int main() {
 
     {
         auto terrain = entitySystem.newEntity();
-        auto chunk = Chunk::generate();
-        static auto terrainModel = std::make_shared<Model>(chunk.asModel());
+        static World world;
+        static auto terrainModel = std::make_shared<Model>(world.asModel(0, 0, 3));
         entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(terrainModel));
         auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
         terrainOrientation[12] = -8.f;
@@ -79,9 +79,10 @@ int main() {
                 60
             );
             rendererState.setLightOrientation(
-                {(float)chunkX * 16 - 10, 5, (float)chunkZ * 16 + 7},
+                {(float)chunkX * 16 - 40, 14, (float)chunkZ * 16 + 18},
                 {(float)chunkX * 16, 0, (float)chunkZ * 16},
-                40
+                32,
+                80
             );
         }
     });

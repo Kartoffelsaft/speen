@@ -3,43 +3,40 @@
 #include "chunk.h"
 
 Chunk Chunk::generate() {
-    return {
-        // refuses to compile if not wrapped in a constructor (???)
-        // and refuses to lint if it is (?????)
-        // looks stupid anyways, will probably change this soon
-        .tiles = std::array<Tile, 16 * 16>({
-            {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {2}, {2}, 
-            {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, {6}, {9}, {9}, {2}, 
-            {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, {1}, {6}, {8}, {9}, {2}, 
-            {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {6}, {7}, {7}, {1}, 
-            {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {6}, {5}, {5}, {1}, 
-            {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {5}, {3}, {5}, {1}, 
-            {1}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {2}, {3}, {3}, {1}, 
-            {1}, {4}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, {1}, {1},
-            {2}, {5}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, 
-            {2}, {4}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, 
-            {2}, {8}, {3}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, 
-            {2}, {8}, {4}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, 
-            {2}, {9}, {8}, {3}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, 
-            {2}, {9}, {9}, {7}, {2}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, 
-            {2}, {8}, {8}, {7}, {3}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, 
-            {2}, {2}, {2}, {1}, {1}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
-        })
-    };
+    Chunk ret;
+    ret.tiles = std::array<Tile, 16 * 16>({
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {2}, {2},
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, {6}, {9}, {9}, {2},
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, {1}, {6}, {8}, {9}, {2},
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {6}, {7}, {7}, {1},
+        {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {6}, {5}, {5}, {1},
+        {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {5}, {3}, {5}, {1},
+        {1}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {2}, {3}, {3}, {1},
+        {1}, {4}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1}, {1}, {1},
+        {2}, {5}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}, {1},
+        {2}, {4}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1},
+        {2}, {8}, {3}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1},
+        {2}, {8}, {4}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1},
+        {2}, {9}, {8}, {3}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0},
+        {2}, {9}, {9}, {7}, {2}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0},
+        {2}, {8}, {8}, {7}, {3}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0},
+        {2}, {2}, {2}, {1}, {1}, {1}, {1}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
+    });
+    return ret;
 }
 
 #pragma clang diagnostic push
 // because we all know information is lost when converting from 5 to 5.0
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
-Model Chunk::asModel() {
+Model::Primitive Chunk::asPrimitive(int const chunkOffsetX, int const chunkOffsetZ) {
     std::vector<float> vertices;
     std::vector<uint32_t> indices;
     vertices.reserve(this->tiles.size() * (3 + 4));
     indices.reserve((this->tiles.size() - 15) * 3 * 2);
     for(int i = 0; i < this->tiles.size(); i++) {
-        vertices.push_back((float)(i % 16));
+        vertices.push_back((float)(i % 16 + chunkOffsetX * 16));
         vertices.push_back((float)(this->tiles[i].height) * 0.35);
-        vertices.push_back((float)(i / 16)); // NOLINT(bugprone-integer-division)
+        vertices.push_back((float)(i / 16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
         vertices.push_back(this->tiles[i].height * 0.01f + 0.05f);
         vertices.push_back(this->tiles[i].height * 0.03f + 0.6f);
         vertices.push_back(this->tiles[i].height * 0.01f + 0.2f);
@@ -87,12 +84,28 @@ Model Chunk::asModel() {
         .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
         .end();
 
+    this->primitive.emplace(Model::Primitive{
+        .vertexBuffer = bgfx::createVertexBuffer(vertexData, layout),
+        .indexBuffer = bgfx::createIndexBuffer(indexData, BGFX_BUFFER_INDEX32),
+        .layout = layout
+    });
+
+    return this->primitive.value();
+}
+
+Model World::asModel(int cx, int cz, float renderDistance) {
+    std::vector<Model::Primitive> primitives;
+    primitives.reserve((renderDistance * 2 + 1) * (renderDistance * 2 + 1));
+    for(int i = cx - renderDistance; i < cx + renderDistance; i++)
+        for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
+            if(!chunks.contains({i, j})) {
+                chunks.emplace(std::make_pair(i, j), Chunk::generate());
+            }
+            primitives.push_back(chunks.at({i, j}).asPrimitive(i, j));
+        }
+
     return Model{
-        .primitives = {{
-            .vertexBuffer = bgfx::createVertexBuffer(vertexData, layout),
-            .indexBuffer = bgfx::createIndexBuffer(indexData, BGFX_BUFFER_INDEX32),
-            .layout = layout
-        }}
+        .primitives = primitives
     };
 }
 #pragma clang diagnostic pop
