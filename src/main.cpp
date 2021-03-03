@@ -70,16 +70,16 @@ int main() {
             float& posY = model->orientation[13];
             float& posZ = model->orientation[14];
 
-            int chunkX = (int)posX / 16;
-            int chunkZ = (int)posZ / 16;
+            int chunkX = ((int)posX - 8) / 16;
+            int chunkZ = ((int)posZ - 8) / 16;
 
             rendererState.setCameraOrientation(
-                {posX + 5, posY + 5, posZ + 5},
+                {posX + 5, posY + 7, posZ + 5},
                 {posX, posY, posZ},
                 60
             );
             rendererState.setLightOrientation(
-                {(float)chunkX * 16 - 40, 14, (float)chunkZ * 16 + 18},
+                {(float)chunkX * 16 - 40, 19, (float)chunkZ * 16 + 18},
                 {(float)chunkX * 16, 0, (float)chunkZ * 16},
                 32,
                 80

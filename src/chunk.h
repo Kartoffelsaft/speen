@@ -6,7 +6,7 @@
 #include "model.h"
 
 struct Tile {
-    int height;
+    float height;
 };
 
 struct Chunk {
