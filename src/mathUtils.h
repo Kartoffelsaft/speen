@@ -22,7 +22,7 @@ std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> convolute
                 sum += image[(i + ki) * ImgSize + j + kj] * kernel[ki * ConvSize + kj];
             }
             return sum;
-        }();
+        }() * scale;
     }
 
     return ret;

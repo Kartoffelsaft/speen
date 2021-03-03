@@ -1,39 +1,33 @@
 #include <bgfx/bgfx.h>
+#include <random>
+#include <cmath>
+#include <algorithm>
 
 #include "chunk.h"
 #include "mathUtils.h"
 
-Chunk Chunk::generate() {
+Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
     Chunk ret;
 
-    std::array<float, 18 * 18> preConvHeightMap = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 6, 9, 9, 1, 1, 2,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 6, 8, 9, 1, 1, 2,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6, 7, 7, 1, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 5, 5, 1, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 3, 5, 1, 1, 1,
-        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 3, 1, 1, 1,
-        1, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
-        2, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-        2, 4, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        2, 8, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        2, 8, 4, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        2, 9, 8, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-        2, 9, 9, 7, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-        2, 8, 8, 7, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-        2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-        2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0,
-        2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
-    };
+    static std::mt19937_64 rng;
+
+    std::array<float, 18 * 18> preConvHeightMap;
+    for(int i = -1; i < 17; i++) for(int j = -1; j < 17; j++) {
+        rng.seed(
+            std::hash<double>()(std::tan(i + chunkX * 16 + 0.3))
+          ^ std::hash<double>()(std::sinh(j + chunkZ * 16))
+          ^ seed
+        );
+        preConvHeightMap[(i + 1) * 18 + j + 1] = (int64_t)(rng() % 10) - 5;
+    }
     auto postConvHeightMap = convolute<18, 3>(preConvHeightMap, {
-        1.f, 0.f, 1.f,
-        0.f, -4.f, 0.f,
-        1.f, 0.f, 1.f
-    });
+        1.f, 2.f, 1.f,
+        2.f, 4.f, 2.f,
+        1.f, 2.f, 1.f
+    }, 1.f/16);
 
     for(int i = 0; i < ret.tiles.size(); i++) {
-        ret.tiles[i].height = postConvHeightMap[i];
+        ret.tiles[i].height = std::clamp(postConvHeightMap[i], 0.f, 5.f) * 3;
     }
 
     return ret;
@@ -204,7 +198,7 @@ Model World::asModel(int cx, int cz, float renderDistance) {
     for(int i = cx - renderDistance; i < cx + renderDistance; i++)
         for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
             if(!chunks.contains({i, j})) {
-                chunks.emplace(std::make_pair(i, j), Chunk::generate());
+                chunks.emplace(std::make_pair(i, j), Chunk::generate(i, j, this->worldSeed));
             }
         }
 

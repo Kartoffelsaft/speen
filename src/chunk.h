@@ -20,7 +20,7 @@ struct Chunk {
         std::optional<Chunk> bottomRightChunk
     );
 
-    static Chunk generate();
+    static Chunk generate(int chunkX, int chunkZ, int seed);
 
 private:
     std::optional<Model::Primitive> primitive;
@@ -32,6 +32,7 @@ private:
 
 struct World {
     std::map<std::pair<int, int>, Chunk> chunks;
+    int const worldSeed = 666666;
 
     Model asModel(int cx, int cz, float renderDistance);
 };
