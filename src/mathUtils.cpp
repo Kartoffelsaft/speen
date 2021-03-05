@@ -1,11 +1,15 @@
 #include "mathUtils.h"
 
-float smoothFloor(float const x) {
-    auto const oldRoundingSetting = std::fegetround();
-    std::fesetround(FE_DOWNWARD);
+std::tuple<int, float> floorFract(float const x) {
     float floor;
     float fract = modff(x, &floor);
-    fesetround(oldRoundingSetting);
+
+    if(fract > 0) return {(int) floor, fract};
+    else return {(int) floor - 1, fract + 1};
+}
+
+float smoothFloor(float const x) {
+    auto [floor, fract] = floorFract(x);
     return floor + 4 * powf(fract - 0.5f, 3);
 }
 
