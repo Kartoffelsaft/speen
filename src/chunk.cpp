@@ -9,25 +9,25 @@
 Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
     Chunk ret;
 
-    static std::mt19937_64 rng;
+    static std::mt19937_64 rng; // NOLINT(cert-msc51-cpp)
 
-    std::array<float, 18 * 18> preConvHeightMap;
+    std::array<float, 18 * 18> preConvHeightMap; // NOLINT(cppcoreguidelines-pro-type-member-init)
     for(int i = -1; i < 17; i++) for(int j = -1; j < 17; j++) {
         rng.seed(
             std::hash<double>()(std::tan(i + chunkX * 16 + 0.3))
           ^ std::hash<double>()(std::sinh(j + chunkZ * 16))
           ^ seed
         );
-        preConvHeightMap[(i + 1) * 18 + j + 1] = (int64_t)(rng() % 10) - 5;
+        preConvHeightMap[(i + 1) * 18 + j + 1] = (int64_t)(rng() % 10);
     }
     auto postConvHeightMap = convolute<18, 3>(preConvHeightMap, {
         1.f, 2.f, 1.f,
-        2.f, 4.f, 2.f,
+        2.f, 2.f, 2.f,
         1.f, 2.f, 1.f
-    }, 1.f/16);
+    }, 1.f/14);
 
     for(int i = 0; i < ret.tiles.size(); i++) {
-        ret.tiles[i].height = std::clamp(postConvHeightMap[i], 0.f, 5.f) * 3;
+        ret.tiles[i].height = smoothClamp(smoothFloor(postConvHeightMap[i] * 0.2f) * 2, -2, 6) * 4;
     }
 
     return ret;

@@ -2,6 +2,8 @@
 
 #include <array>
 #include <algorithm>
+#include <cmath>
+#include <cfenv>
 
 using Mat4 = std::array<float, 16>;
 
@@ -26,4 +28,7 @@ std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> convolute
     }
 
     return ret;
-};
+}
+
+float smoothFloor(float const x);
+float smoothClamp(float const x, float const min, float const max);
