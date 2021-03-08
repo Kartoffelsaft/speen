@@ -46,14 +46,11 @@ std::array<float, ImgSize * ImgSize> generateNoise(
     ret.fill(0.f);
 
     auto getPsuedoRand = [=](int x, int y){
-        static std::mt19937_64 rng; // NOLINT(cert-msc51-cpp)
-        static std::uniform_real_distribution<> distribution(0.0, 1.0);
-        rng.seed(
-            std::hash<double>()(std::tan(x + 0.3))
-          ^ std::hash<double>()(std::sinh(y))
+        return std::hash<std::size_t>()(
+            std::hash<double>()(std::tan(x * x * y * 137.54 + 0.3))
+          ^ std::hash<double>()(std::atanh(y * y * x * 805.87 + 0.84))
           ^ seed
-        );
-        return distribution(rng);
+        ) / (double) std::numeric_limits<std::size_t>::max();
     };
 
     for(auto const & res: resolutions) {
