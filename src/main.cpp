@@ -81,7 +81,7 @@ int main() {
             rendererState.setLightOrientation(
                 {(float)chunkX * 16 - 40, 19, (float)chunkZ * 16 + 18},
                 {(float)chunkX * 16, 0, (float)chunkZ * 16},
-                32,
+                50,
                 80
             );
         }

@@ -40,29 +40,31 @@ std::array<float, ImgSize * ImgSize> generateNoise(
     std::size_t const seed,
     int const offsetX,
     int const offsetY,
-    std::vector<float> const & resolutions
+    //                     scale  amplify seed offset
+    std::vector<std::tuple<float, float, std::size_t>> const & resolutions
 ) {
     std::array<float, ImgSize * ImgSize> ret;
     ret.fill(0.f);
 
-    auto getPsuedoRand = [=](int x, int y){
+    auto getPsuedoRand = [=](int x, int y, std::size_t seedOffset){
         return std::hash<std::size_t>()(
             std::hash<double>()(std::tan(x * x * y * 137.54 + 0.3))
           ^ std::hash<double>()(std::atanh(y * y * x * 805.87 + 0.84))
           ^ seed
+          ^ seedOffset
         ) / (double) std::numeric_limits<std::size_t>::max();
     };
 
-    for(auto const & res: resolutions) {
+    for(auto const & [scale, amplification, seedOffset]: resolutions) {
         for(int i = 0; i < ImgSize; i++) for(int j = 0; j < ImgSize; j++) {
-            auto [u, uFract] = floorFract((i + offsetX) * res);
-            auto [v, vFract] = floorFract((j + offsetY) * res);
-            auto r00 = getPsuedoRand(u, v);
-            auto r01 = getPsuedoRand(u, v + 1);
-            auto r10 = getPsuedoRand(u + 1, v);
-            auto r11 = getPsuedoRand(u + 1, v + 1);
+            auto [u, uFract] = floorFract((i + offsetX) * scale);
+            auto [v, vFract] = floorFract((j + offsetY) * scale);
+            auto r00 = getPsuedoRand(u, v, seedOffset);
+            auto r01 = getPsuedoRand(u, v + 1, seedOffset);
+            auto r10 = getPsuedoRand(u + 1, v, seedOffset);
+            auto r11 = getPsuedoRand(u + 1, v + 1, seedOffset);
 
-            ret[j * ImgSize + i] = (
+            ret[j * ImgSize + i] += amplification * (
                 r00 * (1 - uFract) * (1 - vFract) +
                 r01 * (1 - uFract) * vFract +
                 r10 * uFract * (1 - vFract) +

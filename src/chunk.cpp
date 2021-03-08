@@ -13,16 +13,16 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
         seed,
         chunkX * 16 - 1,
         chunkZ * 16 - 1,
-        {0.02f, 0.03f, 0.1f, 0.15f, 0.4f}
+        {{0.3f, 0.6f, 4}, {0.04f, 6.f, 7}, {0.6f, 0.2f, 333}}
     );
     auto postConvHeightMap = convolute<18, 3>(preConvHeightMap, {
-        1.f, 2.f, 1.f,
-        2.f, 4.f, 2.f,
-        1.f, 2.f, 1.f
-    }, 1.f/16);
+        1.f, 1.f, 1.f,
+        1.f, 4.f, 1.f,
+        1.f, 1.f, 1.f
+    }, 1.f/12);
 
     for(int i = 0; i < ret.tiles.size(); i++) {
-        ret.tiles[i].height = postConvHeightMap[i] * 10 - 5;
+        ret.tiles[i].height = postConvHeightMap[i] * 10 - 36;
         //ret.tiles[i].height = smoothClamp(smoothFloor(postConvHeightMap[i] + 0.2) * 4, -2, 9) * 4;
     }
 
@@ -60,10 +60,10 @@ Model::Primitive Chunk::asPrimitive(
 
     float const heightScale = 0.35f;
     float const rColorScale = 0.01f;
-    float const gColorScale = 0.03f;
+    float const gColorScale = 0.02f;
     float const bColorScale = 0.01f;
     float const rColorOffset = 0.05f;
-    float const gColorOffset = 0.6f;
+    float const gColorOffset = 0.7f;
     float const bColorOffset = 0.02;
 
     for(int i = 0; i < this->tiles.size(); i++) {
