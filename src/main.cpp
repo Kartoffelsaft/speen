@@ -31,11 +31,11 @@ int main() {
         donutOrientation[14] = -5.f;
     }
 
+    static World world;
+    int const RENDER_DISTANCE = 3;
     {
         auto terrain = entitySystem.newEntity();
-        static World world;
-        static auto terrainModel = std::make_shared<Model>(world.asModel(0, 0, 3));
-        entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(terrainModel));
+        entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, RENDER_DISTANCE)));
         auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
         terrainOrientation[12] = -8.f;
         terrainOrientation[13] = -1.f;
@@ -84,6 +84,7 @@ int main() {
                 50,
                 80
             );
+            world.updateModel(chunkX, chunkZ, RENDER_DISTANCE);
         }
     });
     while(!rendererState.windowShouldClose) {

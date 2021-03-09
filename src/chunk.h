@@ -34,5 +34,14 @@ struct World {
     std::map<std::pair<int, int>, Chunk> chunks;
     int const worldSeed = 666666;
 
-    Model asModel(int cx, int cz, float renderDistance);
+    std::optional<std::shared_ptr<Model>> model;
+
+    std::weak_ptr<Model> updateModel(int cx, int cz, int renderDistance);
+
+private:
+    int oldCx = -999;
+    int oldCz = -998;
+    int oldRenderDistance = -1;
+
+    Model asModel(int cx, int cz, int renderDistance);
 };

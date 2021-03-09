@@ -188,7 +188,24 @@ Model::Primitive Chunk::asPrimitive(
     return this->primitive.value();
 }
 
-Model World::asModel(int cx, int cz, float renderDistance) {
+std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
+    if(
+        cx != this->oldCx
+     || cz != this->oldCz
+     || renderDistance != this->oldRenderDistance
+     || !this->model.has_value()
+    ) {
+        if(this->model.has_value()) {
+            *this->model.value() = this->asModel(cx, cz, renderDistance);
+        } else {
+            this->model = std::make_optional(std::make_shared<Model>(this->asModel(cx, cz, renderDistance)));
+        }
+    }
+
+    return this->model.value();
+}
+
+Model World::asModel(int cx, int cz, int renderDistance) {
     std::vector<Model::Primitive> primitives;
     primitives.reserve((renderDistance * 2 + 1) * (renderDistance * 2 + 1));
     for(int i = cx - renderDistance; i < cx + renderDistance; i++)
