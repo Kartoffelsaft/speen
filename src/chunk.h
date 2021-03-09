@@ -20,6 +20,8 @@ struct Chunk {
         std::optional<Chunk> bottomRightChunk
     );
 
+    void unloadPrimitive();
+
     static Chunk generate(int chunkX, int chunkZ, int seed);
 
 private:
@@ -43,5 +45,5 @@ private:
     int oldCz = -998;
     int oldRenderDistance = -1;
 
-    Model asModel(int cx, int cz, int renderDistance);
+    Model asModel(int cx, int cz, int renderDistance, int unloadDistance);
 };

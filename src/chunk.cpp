@@ -188,6 +188,11 @@ Model::Primitive Chunk::asPrimitive(
     return this->primitive.value();
 }
 
+void Chunk::unloadPrimitive() {
+    this->primitive.reset();
+    this->primitiveGenerationState = 0;
+}
+
 std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
     if(
         cx != this->oldCx
@@ -196,16 +201,16 @@ std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
      || !this->model.has_value()
     ) {
         if(this->model.has_value()) {
-            *this->model.value() = this->asModel(cx, cz, renderDistance);
+            *this->model.value() = this->asModel(cx, cz, renderDistance, renderDistance + 2);
         } else {
-            this->model = std::make_optional(std::make_shared<Model>(this->asModel(cx, cz, renderDistance)));
+            this->model = std::make_optional(std::make_shared<Model>(this->asModel(cx, cz, renderDistance, renderDistance + 2)));
         }
     }
 
     return this->model.value();
 }
 
-Model World::asModel(int cx, int cz, int renderDistance) {
+Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     std::vector<Model::Primitive> primitives;
     primitives.reserve((renderDistance * 2 + 1) * (renderDistance * 2 + 1));
     for(int i = cx - renderDistance; i < cx + renderDistance; i++)
@@ -214,6 +219,18 @@ Model World::asModel(int cx, int cz, int renderDistance) {
                 chunks.emplace(std::make_pair(i, j), Chunk::generate(i, j, this->worldSeed));
             }
         }
+
+    for(auto & [coord, chunk]: chunks) {
+	auto [x, z] = coord;
+        if(
+            x < cx - unloadDistance
+         || x > cx + unloadDistance
+         || z < cz - unloadDistance
+         || z > cz + unloadDistance
+        ) {
+            chunk.unloadPrimitive();
+        }
+    }
 
     for(int i = cx - renderDistance; i < cx + renderDistance; i++)
         for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
