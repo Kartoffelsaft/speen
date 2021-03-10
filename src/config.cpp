@@ -14,8 +14,9 @@ resolutionY = 720
 # Possible values: 1, 2, 4, 8, 16
 msaa = 4
 vsync = true
+renderDistance = 3
 
-shadowMapResolution = 1024
+shadowMapResolution = 1536
 
 # Possible control settings listed at https://wiki.libsdl.org/SDL_Keycode
 [controls]
@@ -39,10 +40,11 @@ Config Config::init() {
 
     return Config{
         .graphics {
-            .resolutionX = **settingsData["graphics"]["resolutionX"].as_integer(),
-            .resolutionY = **settingsData["graphics"]["resolutionY"].as_integer(),
-            .msaa        = **settingsData["graphics"]["msaa"].as_integer(),
-            .vsync       = **settingsData["graphics"]["vsync"].as_boolean(),
+            .resolutionX    = **settingsData["graphics"]["resolutionX"].as_integer(),
+            .resolutionY    = **settingsData["graphics"]["resolutionY"].as_integer(),
+            .msaa           = **settingsData["graphics"]["msaa"].as_integer(),
+            .vsync          = **settingsData["graphics"]["vsync"].as_boolean(),
+            .renderDistance = **settingsData["graphics"]["renderDistance"].as_integer(),
 
             .shadowMapResolution = **settingsData["graphics"]["shadowMapResolution"].as_integer(),
         },

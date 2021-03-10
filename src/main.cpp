@@ -31,10 +31,9 @@ int main() {
         donutOrientation[14] = -5.f;
     }
 
-    int const RENDER_DISTANCE = 3;
     {
         auto terrain = entitySystem.newEntity();
-        entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, RENDER_DISTANCE)));
+        entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, config.graphics.renderDistance)));
         auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
         terrainOrientation[12] = -8.f;
         terrainOrientation[13] = -1.f;
@@ -83,7 +82,7 @@ int main() {
                 50,
                 80
             );
-            world.updateModel(chunkX, chunkZ, RENDER_DISTANCE);
+            world.updateModel(chunkX, chunkZ, config.graphics.renderDistance);
         }
     });
     while(!rendererState.windowShouldClose) {

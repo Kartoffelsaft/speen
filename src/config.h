@@ -10,6 +10,7 @@ struct Config {
         int64_t resolutionY;
         int64_t msaa;
         bool vsync;
+        int64_t renderDistance;
 
         int64_t shadowMapResolution;
     } graphics;
