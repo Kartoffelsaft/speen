@@ -47,3 +47,5 @@ private:
 
     Model asModel(int cx, int cz, int renderDistance, int unloadDistance);
 };
+
+extern World world;

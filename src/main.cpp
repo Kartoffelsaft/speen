@@ -31,7 +31,6 @@ int main() {
         donutOrientation[14] = -5.f;
     }
 
-    static World world;
     int const RENDER_DISTANCE = 3;
     {
         auto terrain = entitySystem.newEntity();

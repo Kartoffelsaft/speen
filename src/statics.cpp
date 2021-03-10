@@ -4,6 +4,7 @@
 #include "entitySystem.h"
 #include "rendererState.h"
 #include "config.h"
+#include "chunk.h"
 
 // Putting all the statics in here allows enforcing the order they are initialized in
 // preventing the static initialization order fiasco
@@ -15,6 +16,8 @@ RendererState rendererState = RendererState::init();
 ModelLoader modelLoader = ModelLoader::init();
 
 EntitySystem entitySystem;
+
+World world;
 
 
 #pragma clang diagnostic pop
