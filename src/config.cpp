@@ -38,15 +38,20 @@ Config Config::init() {
 
     toml::table settingsData = toml::parse_file(settingsFilename);
 
+#define GET_SETTING(SETTING_NAME, SETTING_DEFAULT) .SETTING_NAME = [&](){\
+return settingsData[SETTING_SECTION][#SETTING_NAME].value_or(SETTING_DEFAULT);\
+}()
+
     return Config{
         .graphics {
-            .resolutionX    = **settingsData["graphics"]["resolutionX"].as_integer(),
-            .resolutionY    = **settingsData["graphics"]["resolutionY"].as_integer(),
-            .msaa           = **settingsData["graphics"]["msaa"].as_integer(),
-            .vsync          = **settingsData["graphics"]["vsync"].as_boolean(),
-            .renderDistance = **settingsData["graphics"]["renderDistance"].as_integer(),
+#define SETTING_SECTION "graphics"
+            GET_SETTING(resolutionX,    1280),
+            GET_SETTING(resolutionY,    720 ),
+            GET_SETTING(msaa,           1   ),
+            GET_SETTING(vsync,          true),
+            GET_SETTING(renderDistance, 3   ),
 
-            .shadowMapResolution = **settingsData["graphics"]["shadowMapResolution"].as_integer(),
+            GET_SETTING(shadowMapResolution, 1526),
         },
 
         .keybindings {
