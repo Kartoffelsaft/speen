@@ -13,12 +13,16 @@
 #include "input.h"
 #include "config.h"
 #include "chunk.h"
+#include "frame.h"
+#include "physics.h"
 
 int main() {
     bgfx::setDebug(BGFX_DEBUG_STATS);
 
     entitySystem.initComponent<ModelInstance>();
     entitySystem.initComponent<InputComponent>();
+    entitySystem.initComponent<OnFrameComponent>();
+    entitySystem.initComponent<PhysicsComponent>();
 
     InputState inputState;
 
@@ -42,38 +46,42 @@ int main() {
 
     auto mokey = entitySystem.newEntity();
     entitySystem.addComponent(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
+    entitySystem.addComponent(mokey, PhysicsComponent{
+        .posX = 0,
+        .posY = 0,
+        .posZ = 0,
+        .velX = 0,
+        .velY = 0,
+        .velZ = 0
+    });
     entitySystem.addComponent(mokey, InputComponent{
         .onInput = [](InputState const & inputs, EntityId const id) {
-            auto* model = entitySystem.getComponentData<ModelInstance>(id);
-            Mat4 delta;
-            bx::mtxIdentity(delta.data());
+            auto* obj = entitySystem.getComponentData<PhysicsComponent>(id);
+
+            obj->velX = 0.f;
+            obj->velY = 0.f;
+            obj->velZ = 0.f;
+
             if(inputs.keysHeld.contains(config.keybindings.forward)) {
-                delta[12] -= 0.1;
+                obj->velX = -8.f;
             } if(inputs.keysHeld.contains(config.keybindings.back)) {
-                delta[12] += 0.1;
+                obj->velX = +8.f;
             } if(inputs.keysHeld.contains(config.keybindings.left)) {
-                delta[14] -= 0.1;
+                obj->velZ = -8.f;
             } if(inputs.keysHeld.contains(config.keybindings.right)) {
-                delta[14] += 0.1;
+                obj->velZ = +8.f;
             } if(inputs.keysHeld.contains(config.keybindings.up)) {
-                delta[13] += 0.1;
+                obj->velY = +8.f;
             } if(inputs.keysHeld.contains(config.keybindings.down)) {
-                delta[13] -= 0.1;
+                obj->velY = -8.f;
             }
-            Mat4 tmp;
-            bx::mtxMul(tmp.data(), model->orientation.data(), delta.data());
-            model->orientation = tmp;
 
-            float& posX = model->orientation[12];
-            float& posY = model->orientation[13];
-            float& posZ = model->orientation[14];
-
-            int chunkX = ((int)posX - 8) / 16;
-            int chunkZ = ((int)posZ - 8) / 16;
+            int chunkX = ((int)obj->posX - 8) / 16;
+            int chunkZ = ((int)obj->posZ - 8) / 16;
 
             rendererState.setCameraOrientation(
-                {posX + 5, posY + 7, posZ + 5},
-                {posX, posY, posZ},
+                {obj->posX + 5, obj->posY + 7, obj->posZ + 5},
+                {obj->posX, obj->posY, obj->posZ},
                 60
             );
             rendererState.setLightOrientation(
@@ -85,11 +93,23 @@ int main() {
             world.updateModel(chunkX, chunkZ, config.graphics.renderDistance);
         }
     });
+
+    auto frameStart = std::chrono::high_resolution_clock::now();
+    float lastFrameTimeElapsed = 0.f;
+
     while(!rendererState.windowShouldClose) {
         inputState.updateInputs();
         for(auto const & entity: entitySystem.filterByComponent<InputComponent>()) {
             auto* const inputHandler = entitySystem.getComponentData<InputComponent>(entity);
             inputHandler->onInput(inputState, entity);
+        }
+
+        for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
+            entitySystem.getComponentData<OnFrameComponent>(entity)->onFrame(entity, lastFrameTimeElapsed);
+        }
+
+        for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
+            entitySystem.getComponentData<PhysicsComponent>(entity)->step(entity, lastFrameTimeElapsed);
         }
 
         bgfx::setUniform(
@@ -114,6 +134,12 @@ int main() {
         }
 
         bgfx::frame();
+
+        auto frameEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float> timeElapsed = frameEnd - frameStart;
+        lastFrameTimeElapsed = timeElapsed.count();
+        frameStart = frameEnd;
+
         rendererState.frame++;
     }
 
