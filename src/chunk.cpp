@@ -47,6 +47,8 @@ Model::Primitive Chunk::asPrimitive(
         return this->primitive.value();
     }
 
+    this->unloadPrimitive();
+
     this->primitiveGenerationState = 0
         | (rightChunk.has_value()? GENERATION_STATE_RIGHT_FINISHED : 0)
         | (bottomChunk.has_value()? GENERATION_STATE_BOTTOM_FINISHED : 0)
@@ -189,8 +191,11 @@ Model::Primitive Chunk::asPrimitive(
 }
 
 void Chunk::unloadPrimitive() {
-    this->primitive.reset();
-    this->primitiveGenerationState = 0;
+    if(this->primitive.has_value()) {
+        this->primitive.value().destroy();
+        this->primitive.reset();
+        this->primitiveGenerationState = 0;
+    }
 }
 
 std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
@@ -205,6 +210,9 @@ std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
         } else {
             this->model = std::make_optional(std::make_shared<Model>(this->asModel(cx, cz, renderDistance, renderDistance + 2)));
         }
+        this->oldCx = cx;
+        this->oldCz = cz;
+        this->oldRenderDistance = renderDistance;
     }
 
     return this->model.value();

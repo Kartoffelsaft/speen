@@ -307,6 +307,9 @@ std::weak_ptr<Model const> ModelLoader::getModel(
     }
 }
 
-
+void Model::Primitive::destroy() {
+    bgfx::destroy(this->vertexBuffer);
+    bgfx::destroy(this->indexBuffer);
+}
 
 #pragma clang diagnostic pop

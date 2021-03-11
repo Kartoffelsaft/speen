@@ -27,6 +27,8 @@ struct Model {
         bgfx::VertexBufferHandle const vertexBuffer;
         bgfx::IndexBufferHandle  const indexBuffer;
         bgfx::VertexLayout const layout;
+
+        void destroy();
     };
 
     std::vector<Primitive> primitives;
