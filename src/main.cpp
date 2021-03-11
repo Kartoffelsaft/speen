@@ -62,18 +62,20 @@ int main() {
             obj->velY = 0.f;
             obj->velZ = 0.f;
 
-            if(inputs.keysHeld.contains(config.keybindings.forward)) {
-                obj->velX = -8.f;
-            } if(inputs.keysHeld.contains(config.keybindings.back)) {
-                obj->velX = +8.f;
-            } if(inputs.keysHeld.contains(config.keybindings.left)) {
-                obj->velZ = -8.f;
-            } if(inputs.keysHeld.contains(config.keybindings.right)) {
-                obj->velZ = +8.f;
-            } if(inputs.keysHeld.contains(config.keybindings.up)) {
-                obj->velY = +8.f;
-            } if(inputs.keysHeld.contains(config.keybindings.down)) {
-                obj->velY = -8.f;
+            for(auto inp: inputs.keysHeld) {
+                if(config.keybindings.forward.contains(inp)) {
+                    obj->velX = -8.f;
+                } if(config.keybindings.back.contains(inp)) {
+                    obj->velX = +8.f;
+                } if(config.keybindings.left.contains(inp)) {
+                    obj->velZ = -8.f;
+                } if(config.keybindings.right.contains(inp)) {
+                    obj->velZ = +8.f;
+                } if(config.keybindings.up.contains(inp)) {
+                    obj->velY = +8.f;
+                } if(config.keybindings.down.contains(inp)) {
+                    obj->velY = -8.f;
+                }
             }
 
             int chunkX = ((int)obj->posX - 8) / 16;

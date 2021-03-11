@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <unordered_set>
 
 struct Config {
     static Config init();
@@ -16,12 +17,12 @@ struct Config {
     } graphics;
 
     struct {
-        SDL_Keycode forward;
-        SDL_Keycode back;
-        SDL_Keycode left;
-        SDL_Keycode right;
-        SDL_Keycode up;
-        SDL_Keycode down;
+        std::unordered_set<SDL_Keycode> forward;
+        std::unordered_set<SDL_Keycode> back;
+        std::unordered_set<SDL_Keycode> left;
+        std::unordered_set<SDL_Keycode> right;
+        std::unordered_set<SDL_Keycode> up;
+        std::unordered_set<SDL_Keycode> down;
     } keybindings;
 };
 

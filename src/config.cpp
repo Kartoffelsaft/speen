@@ -19,6 +19,7 @@ renderDistance = 3
 shadowMapResolution = 1536
 
 # Possible control settings listed at https://wiki.libsdl.org/SDL_Keycode
+# Can be given either as a single "Control" or as multiple ["ControlA", "ControlB", "ControlC"]
 [controls]
 forward = "W"
 back = "S"
@@ -42,6 +43,20 @@ Config Config::init() {
 return settingsData[SETTING_SECTION][#SETTING_NAME].value_or(SETTING_DEFAULT);\
 }()
 
+#define GET_KEYBINDS(ACTION_NAME) .ACTION_NAME = [&](){\
+if(auto* keyName = settingsData[SETTING_SECTION][#ACTION_NAME].as_string()) {\
+    return std::unordered_set<SDL_Keycode>{{ SDL_GetKeyFromName((**keyName).c_str()) }};\
+} else if(auto* keyNames = settingsData[SETTING_SECTION][#ACTION_NAME].as_array()) {\
+    std::unordered_set<SDL_Keycode> keys;\
+    for(auto& keyNode: *keyNames) if(auto* keyName = keyNode.as_string()) {\
+        keys.insert(SDL_GetKeyFromName((**keyName).c_str()));\
+    }\
+    return keys;\
+} else {\
+    return std::unordered_set<SDL_Keycode>{};\
+}\
+}()
+
     return Config{
         .graphics {
 #define SETTING_SECTION "graphics"
@@ -52,15 +67,18 @@ return settingsData[SETTING_SECTION][#SETTING_NAME].value_or(SETTING_DEFAULT);\
             GET_SETTING(renderDistance, 3   ),
 
             GET_SETTING(shadowMapResolution, 1526),
+#undef SETTING_SECTION
         },
 
         .keybindings {
-            .forward = SDL_GetKeyFromName((**settingsData["controls"]["forward"].as_string()).c_str()),
-            .back    = SDL_GetKeyFromName((**settingsData["controls"]["back"].as_string()).c_str()),
-            .left    = SDL_GetKeyFromName((**settingsData["controls"]["left"].as_string()).c_str()),
-            .right   = SDL_GetKeyFromName((**settingsData["controls"]["right"].as_string()).c_str()),
-            .up      = SDL_GetKeyFromName((**settingsData["controls"]["up"].as_string()).c_str()),
-            .down    = SDL_GetKeyFromName((**settingsData["controls"]["down"].as_string()).c_str()),
+#define SETTING_SECTION "controls"
+            GET_KEYBINDS(forward),
+            GET_KEYBINDS(back),
+            GET_KEYBINDS(left),
+            GET_KEYBINDS(right),
+            GET_KEYBINDS(up),
+            GET_KEYBINDS(down),
+#undef SETTING_SECTION
         }
     };
 }
