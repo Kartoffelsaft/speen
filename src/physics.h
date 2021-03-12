@@ -9,5 +9,7 @@ struct PhysicsComponent {
     float velY;
     float velZ;
 
+    bool grounded = false;
+
     void step(EntityId const id, float const delta);
 };

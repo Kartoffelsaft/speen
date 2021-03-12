@@ -39,9 +39,9 @@ int main() {
         auto terrain = entitySystem.newEntity();
         entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, config.graphics.renderDistance)));
         auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
-        terrainOrientation[12] = -8.f;
-        terrainOrientation[13] = -1.f;
-        terrainOrientation[14] = -8.f;
+        terrainOrientation[12] = 0.f;
+        terrainOrientation[13] = 0.f;
+        terrainOrientation[14] = 0.f;
     }
 
     auto mokey = entitySystem.newEntity();
@@ -52,7 +52,8 @@ int main() {
         .posZ = 0,
         .velX = 0,
         .velY = 0,
-        .velZ = 0
+        .velZ = 0,
+        .grounded = true
     });
     entitySystem.addComponent(mokey, InputComponent{
         .onInput = [](InputState const & inputs, EntityId const id) {
@@ -78,8 +79,8 @@ int main() {
                 }
             }
 
-            int chunkX = ((int)obj->posX - 8) / 16;
-            int chunkZ = ((int)obj->posZ - 8) / 16;
+            int chunkX = ((int)obj->posX) / 16;
+            int chunkZ = ((int)obj->posZ) / 16;
 
             rendererState.setCameraOrientation(
                 {obj->posX + 5, obj->posY + 7, obj->posZ + 5},
@@ -87,7 +88,7 @@ int main() {
                 60
             );
             rendererState.setLightOrientation(
-                {(float)chunkX * 16 - 40, 19, (float)chunkZ * 16 + 18},
+                {(float)chunkX * 16 - 48, 19, (float)chunkZ * 16 + 10},
                 {(float)chunkX * 16, 0, (float)chunkZ * 16},
                 50,
                 80

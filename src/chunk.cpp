@@ -22,7 +22,7 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
     }, 1.f/12);
 
     for(int i = 0; i < ret.tiles.size(); i++) {
-        ret.tiles[i].height = postConvHeightMap[i] * 10 - 36;
+        ret.tiles[i].height = postConvHeightMap[i] * 5 - 20;
         //ret.tiles[i].height = smoothClamp(smoothFloor(postConvHeightMap[i] + 0.2) * 4, -2, 9) * 4;
     }
 
@@ -60,7 +60,6 @@ Model::Primitive Chunk::asPrimitive(
     vertices.reserve((this->tiles.size() + 33) * vertexSize);
     indices.reserve((this->tiles.size()) * 3 * 2);
 
-    float const heightScale = 0.35f;
     float const rColorScale = 0.01f;
     float const gColorScale = 0.02f;
     float const bColorScale = 0.01f;
@@ -70,7 +69,7 @@ Model::Primitive Chunk::asPrimitive(
 
     for(int i = 0; i < this->tiles.size(); i++) {
         vertices.push_back((float)(i % 16 + chunkOffsetX * 16));
-        vertices.push_back((float)(this->tiles[i].height) * heightScale);
+        vertices.push_back((float)(this->tiles[i].height));
         vertices.push_back((float)(i / 16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
         vertices.push_back(this->tiles[i].height * rColorScale + rColorOffset);
         vertices.push_back(this->tiles[i].height * gColorScale + gColorOffset);
@@ -80,7 +79,7 @@ Model::Primitive Chunk::asPrimitive(
     unsigned int const rightChunkOffset = vertices.size() / vertexSize;
     if(rightChunk.has_value()) for(int i = 0; i < 16; i++) {
         vertices.push_back((float)(16 + chunkOffsetX * 16));
-        vertices.push_back((float)(rightChunk->tiles[i * 16].height) * heightScale);
+        vertices.push_back((float)(rightChunk->tiles[i * 16].height));
         vertices.push_back((float)(i + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
         vertices.push_back(rightChunk->tiles[i * 16].height * rColorScale + rColorOffset);
         vertices.push_back(rightChunk->tiles[i * 16].height * gColorScale + gColorOffset);
@@ -92,7 +91,7 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back((float)(i + chunkOffsetX * 16));
         // yes I know "% 16" is redundant, but it's consistent
         // a good compiler will optimize it out anyways
-        vertices.push_back((float)(bottomChunk->tiles[i % 16].height) * heightScale);
+        vertices.push_back((float)(bottomChunk->tiles[i % 16].height));
         vertices.push_back((float)(16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
         vertices.push_back(bottomChunk->tiles[i % 16].height * rColorScale + rColorOffset);
         vertices.push_back(bottomChunk->tiles[i % 16].height * gColorScale + gColorOffset);
@@ -102,7 +101,7 @@ Model::Primitive Chunk::asPrimitive(
     unsigned int const bottomRightChunkOffset = vertices.size() / vertexSize;
     if(bottomRightChunk.has_value()) {
         vertices.push_back((float)(16 + chunkOffsetX * 16));
-        vertices.push_back((float)(bottomRightChunk->tiles[0].height) * heightScale);
+        vertices.push_back((float)(bottomRightChunk->tiles[0].height));
         vertices.push_back((float)(16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
         vertices.push_back(bottomRightChunk->tiles[0].height * rColorScale + rColorOffset);
         vertices.push_back(bottomRightChunk->tiles[0].height * gColorScale + gColorOffset);
@@ -229,7 +228,7 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
         }
 
     for(auto & [coord, chunk]: chunks) {
-	auto [x, z] = coord;
+        auto [x, z] = coord;
         if(
             x < cx - unloadDistance
          || x > cx + unloadDistance
@@ -261,4 +260,31 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
         .primitives = primitives
     };
 }
+
+Tile& World::getTile(int x, int z) {
+    auto xdiv = std::div(x, 16);
+    if(xdiv.rem < 0) {
+        xdiv.rem += 16;
+        xdiv.quot -= 1;
+    }
+    auto zdiv = std::div(z, 16);
+    if(zdiv.rem < 0) {
+        zdiv.rem += 16;
+        zdiv.quot -= 1;
+    }
+
+    return chunks.at({xdiv.quot, zdiv.quot}).tiles[zdiv.rem * 16 + xdiv.rem];
+}
+
+float World::sampleHeight(float x, float z) {
+    auto [ix, rx] = floorFract(x);
+    auto [iz, rz] = floorFract(z);
+
+    return 
+        this->getTile(ix    , iz    ).height * (1 - rx) * (1 - rz)
+      + this->getTile(ix + 1, iz    ).height * (    rx) * (1 - rz)
+      + this->getTile(ix    , iz + 1).height * (1 - rx) * (    rz)
+      + this->getTile(ix + 1, iz + 1).height * (    rx) * (    rz);
+}
+
 #pragma clang diagnostic pop

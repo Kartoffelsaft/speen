@@ -40,6 +40,9 @@ struct World {
 
     std::weak_ptr<Model> updateModel(int cx, int cz, int renderDistance);
 
+    Tile& getTile(int x, int z);
+    float sampleHeight(float x, float z);
+
 private:
     int oldCx = -999;
     int oldCz = -998;
