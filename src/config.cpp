@@ -15,6 +15,7 @@ resolutionY = 720
 msaa = 4
 vsync = true
 renderDistance = 3
+fieldOfView = 60
 
 shadowMapResolution = 1536
 
@@ -65,6 +66,7 @@ if(auto* keyName = settingsData[SETTING_SECTION][#ACTION_NAME].as_string()) {\
             GET_SETTING(msaa,           1   ),
             GET_SETTING(vsync,          true),
             GET_SETTING(renderDistance, 3   ),
+            GET_SETTING(fieldOfView,    60.0),
 
             GET_SETTING(shadowMapResolution, 1526),
 #undef SETTING_SECTION

@@ -84,8 +84,7 @@ int main() {
 
             rendererState.setCameraOrientation(
                 {obj->posX + 5, obj->posY + 7, obj->posZ + 5},
-                {obj->posX, obj->posY, obj->posZ},
-                60
+                {obj->posX, obj->posY, obj->posZ}
             );
             rendererState.setLightOrientation(
                 {(float)chunkX * 16 - 48, 19, (float)chunkZ * 16 + 10},

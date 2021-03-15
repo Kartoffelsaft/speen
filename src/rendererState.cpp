@@ -153,14 +153,14 @@ void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, 
     bgfx::setUniform(this->uniforms.u_lightDirMtx, lightView.data());
 }
 
-void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to, float fov) {
+void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to) {
     Mat4 view;
     bx::mtxLookAt(view.data(), from, to);
 
     Mat4 projection;
     bx::mtxProj(
         projection.data(),
-        fov,
+        (float)config.graphics.fieldOfView,
         (float)config.graphics.resolutionX/(float)config.graphics.resolutionY,
         0.01f,
         1000.f,

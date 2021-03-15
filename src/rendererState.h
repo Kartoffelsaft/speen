@@ -40,7 +40,7 @@ struct RendererState {
     } uniforms;
     
     void setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth);
-    void setCameraOrientation(bx::Vec3 from, bx::Vec3 to, float fov);
+    void setCameraOrientation(bx::Vec3 from, bx::Vec3 to);
 };
 
 extern RendererState rendererState;

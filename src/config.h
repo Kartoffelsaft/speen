@@ -12,6 +12,7 @@ struct Config {
         int64_t msaa;
         bool vsync;
         int64_t renderDistance;
+        double fieldOfView;
 
         int64_t shadowMapResolution;
     } graphics;
