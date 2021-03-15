@@ -30,6 +30,8 @@ struct RendererState {
     bgfx::FrameBufferHandle shadowMapBuffer;
 
     Mat4 lightMapMtx;
+    Mat4 cameraMtx;
+    bx::Vec3 cameraPos;
 
     struct {
         bgfx::UniformHandle u_shadowMap;

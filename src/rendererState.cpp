@@ -168,5 +168,7 @@ void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to) {
     );
 
     bgfx::setViewTransform(RENDER_SCENE_ID, view.data(), projection.data());
+    cameraPos = from;
+    bx::mtxMul(cameraMtx.data(), view.data(), projection.data());
 }
 

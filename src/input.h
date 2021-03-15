@@ -9,9 +9,17 @@ struct InputState {
     std::unordered_set<SDL_Keycode> keysHeld;
     std::unordered_set<SDL_Keycode> keysJustPressed;
 
+    int mousePosX;
+    int mousePosY;
+
+    float mousePosXNormal;
+    float mousePosYNormal;
+
     void updateInputs();
 };
 
 struct InputComponent {
     void (*onInput)(InputState const &, EntityId const);
 };
+
+bx::Vec3 getScreenWorldPos(float x, float y);

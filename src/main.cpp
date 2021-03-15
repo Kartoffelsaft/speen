@@ -29,10 +29,15 @@ int main() {
     {
         auto donut = entitySystem.newEntity();
         entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
-        auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(donut)->orientation;
-        donutOrientation[12] = -5.f;
-        donutOrientation[13] = 1.f;
-        donutOrientation[14] = -5.f;
+        entitySystem.addComponent(donut, InputComponent{
+            .onInput = [](InputState const & inputs, EntityId const id) {
+                auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(id)->orientation;
+                auto newPos = getScreenWorldPos(inputs.mousePosXNormal, inputs.mousePosYNormal);
+                donutOrientation[12] = newPos.x;
+                donutOrientation[13] = newPos.y;
+                donutOrientation[14] = newPos.z;
+            }
+        });
     }
 
     {
