@@ -273,6 +273,12 @@ Tile& World::getTile(int x, int z) {
         zdiv.quot -= 1;
     }
 
+    // TODO: create some sort of error handling for when there is no tile 
+    // at the requested location
+    if(!chunks.contains({xdiv.quot, zdiv.quot})) {
+        chunks.emplace(std::make_pair(xdiv.quot, zdiv.quot), Chunk::generate(xdiv.quot, zdiv.quot, this->worldSeed));
+    }
+
     return chunks.at({xdiv.quot, zdiv.quot}).tiles[zdiv.rem * 16 + xdiv.rem];
 }
 

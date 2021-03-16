@@ -8,7 +8,7 @@ SRCS := $(shell find $(SRC_DIR) -name *.cpp)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 
 CPPFLAGS := \
-    -Og \
+    -O0 \
     -g \
     -std=c++20
 

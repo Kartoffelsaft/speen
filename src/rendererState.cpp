@@ -115,6 +115,9 @@ RendererState RendererState::init() {
         return bgfx::createFrameBuffer(shadowMaps.size(), shadowMaps.data(), true);
     }();
 
+    bx::mtxIdentity(ret.cameraMtx.data());
+    ret.cameraPos = {0.f, 0.f, 0.f};
+
     bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
     bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, config.graphics.shadowMapResolution, config.graphics.shadowMapResolution);
     bgfx::setViewFrameBuffer(RENDER_SHADOW_ID, ret.shadowMapBuffer);
