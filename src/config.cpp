@@ -11,7 +11,7 @@ std::string const defaultSettings = R"TOML(
 [graphics]
 resolutionX = 1280
 resolutionY = 720
-# Possible values: 1, 2, 4, 8, 16
+# Possible values: 1, 2, 4, 8, 16 (and also currently not working)
 msaa = 4
 vsync = true
 renderDistance = 3

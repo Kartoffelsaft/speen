@@ -12,6 +12,7 @@ char const * const WINDOW_NAME = "First bgfx";
 
 bgfx::ViewId const RENDER_SCENE_ID = 1;
 bgfx::ViewId const RENDER_SHADOW_ID = 0;
+bgfx::ViewId const RENDER_SCREEN_ID = 2;
 
 struct RendererState {
     static RendererState init();
@@ -25,6 +26,11 @@ struct RendererState {
 
     bgfx::ProgramHandle sceneProgram;
     bgfx::ProgramHandle shadowProgram;
+    bgfx::ProgramHandle screenProgram;
+
+    bgfx::TextureHandle screenTexture;
+    bgfx::TextureHandle screenData;
+    bgfx::FrameBufferHandle screenBuffer;
 
     bgfx::TextureHandle shadowMap;
     bgfx::FrameBufferHandle shadowMapBuffer;
@@ -39,7 +45,10 @@ struct RendererState {
         bgfx::UniformHandle u_lightMapMtx;
         bgfx::UniformHandle u_modelMtx;
         bgfx::UniformHandle u_frame;
+        bgfx::UniformHandle u_texture;
     } uniforms;
+
+    void finishRender();
     
     void setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth);
     void setCameraOrientation(bx::Vec3 from, bx::Vec3 to);

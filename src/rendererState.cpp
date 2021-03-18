@@ -99,6 +99,60 @@ RendererState RendererState::init() {
         return bgfx::createProgram(vertShader, fragShader, true);
     }();
 
+    ret.screenProgram = [](){
+        auto vertShader = [](){
+            #include "../shaderBuild/vertScreen.h"
+            return createShaderFromArray(vertScreen, sizeof(vertScreen));
+        }();
+
+        auto fragShader = [](){
+            #include "../shaderBuild/fragScreen.h"
+            return createShaderFromArray(fragScreen, sizeof(fragScreen));
+        }();
+
+        return bgfx::createProgram(vertShader, fragShader, true);
+    }();
+
+    ret.screenBuffer = [&](){
+        std::vector<bgfx::TextureHandle> screenTextures = {
+            bgfx::createTexture2D( // visuals
+                config.graphics.resolutionX, 
+                config.graphics.resolutionY, 
+                false, 
+                1, 
+                bgfx::TextureFormat::RGBA8, 
+                BGFX_TEXTURE_RT
+            ),
+            bgfx::createTexture2D( // extra info
+                config.graphics.resolutionX, 
+                config.graphics.resolutionY, 
+                false, 
+                1, 
+                bgfx::TextureFormat::RGBA8, 
+                BGFX_TEXTURE_RT
+            ),
+            bgfx::createTexture2D( // depth
+                config.graphics.resolutionX, 
+                config.graphics.resolutionY, 
+                false, 
+                1, 
+                bgfx::TextureFormat::D24, 
+                BGFX_TEXTURE_RT
+            ),
+        };
+        std::vector<bgfx::Attachment> screenAttachments;
+        screenAttachments.reserve(screenTextures.size());
+        for(auto& tex: screenTextures) {
+            bgfx::Attachment a;
+            a.init(tex);
+            screenAttachments.push_back(a);
+        }
+
+        ret.screenTexture = screenTextures.at(0);
+        ret.screenData = screenTextures.at(1);
+        return bgfx::createFrameBuffer(screenAttachments.size(), screenAttachments.data(), true);
+    }();
+
     ret.shadowMapBuffer = [&](){
         std::vector<bgfx::TextureHandle> shadowMaps = {
             bgfx::createTexture2D(
@@ -119,8 +173,11 @@ RendererState RendererState::init() {
     ret.cameraPos = {0.f, 0.f, 0.f};
 
     bgfx::setViewRect(RENDER_SCENE_ID, 0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
+    bgfx::setViewFrameBuffer(RENDER_SCENE_ID, ret.screenBuffer);
     bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, config.graphics.shadowMapResolution, config.graphics.shadowMapResolution);
     bgfx::setViewFrameBuffer(RENDER_SHADOW_ID, ret.shadowMapBuffer);
+    bgfx::setViewRect(RENDER_SCREEN_ID, 0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
+    bgfx::setViewFrameBuffer(RENDER_SCREEN_ID, BGFX_INVALID_HANDLE);
 
     ret.uniforms = {
         .u_shadowMap   = bgfx::createUniform("u_shadowMap", bgfx::UniformType::Sampler),
@@ -128,10 +185,50 @@ RendererState RendererState::init() {
         .u_lightMapMtx = bgfx::createUniform("u_lightMapMtx", bgfx::UniformType::Mat4),
         .u_modelMtx    = bgfx::createUniform("u_modelMtx", bgfx::UniformType::Mat4),
         // why does bgfx not have float/int uniforms? ugh.
-        .u_frame       = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4)
+        .u_frame       = bgfx::createUniform("u_frame", bgfx::UniformType::Vec4),
+        .u_texture     = bgfx::createUniform("u_texture", bgfx::UniformType::Sampler)
     };
     
     return ret;
+}
+
+void RendererState::finishRender() {
+    bgfx::TransientVertexBuffer screenSpaceBuffer;
+    bgfx::TransientIndexBuffer indices;
+    bgfx::VertexLayout layout;
+    layout.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
+    bgfx::allocTransientVertexBuffer(&screenSpaceBuffer, 4, layout);
+    auto ssbData = (float*)screenSpaceBuffer.data;
+    bgfx::allocTransientIndexBuffer(&indices, 6);
+    auto iData = (uint16_t*)indices.data;
+
+    ssbData[0 ] = 0.0f;
+    ssbData[1 ] = 0.0f;
+    ssbData[2 ] = 0.0f;
+    ssbData[3 ] = 0.0f;
+    ssbData[4 ] = 1.0f;
+    ssbData[5 ] = 0.0f;
+    ssbData[6 ] = 1.0f;
+    ssbData[7 ] = 0.0f;
+    ssbData[8 ] = 0.0f;
+    ssbData[9 ] = 1.0f;
+    ssbData[10] = 1.0f;
+    ssbData[11] = 0.0f;
+
+    iData[0] = 0;
+    iData[1] = 3;
+    iData[2] = 1;
+    iData[3] = 0;
+    iData[4] = 2;
+    iData[5] = 3;
+
+    bgfx::setVertexBuffer(0, &screenSpaceBuffer);
+    bgfx::setIndexBuffer(&indices);
+    bgfx::setTexture(0, uniforms.u_texture, screenTexture);
+
+    bgfx::submit(RENDER_SCREEN_ID, screenProgram);
+
+    bgfx::frame();
 }
 
 void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth){

@@ -126,11 +126,13 @@ int main() {
 
         bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
         bgfx::setViewClear(RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x8899ffff);
+        bgfx::setViewClear(RENDER_SCREEN_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x8899ffff);
 
         {
             std::vector<bgfx::ViewId> viewOrder = {
                 RENDER_SHADOW_ID,
                 RENDER_SCENE_ID,
+                RENDER_SCREEN_ID,
             };
 
             bgfx::setViewOrder(0, viewOrder.size(), viewOrder.data());
@@ -140,7 +142,7 @@ int main() {
             entitySystem.getComponentData<ModelInstance>(e)->draw();
         }
 
-        bgfx::frame();
+        rendererState.finishRender();
 
         auto frameEnd = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> timeElapsed = frameEnd - frameStart;
