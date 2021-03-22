@@ -7,15 +7,16 @@ uniform sampler2D u_shadowMap;
 uniform vec4 u_frame;
 
 void main() {
-    vec2 shadowSampleCoord = v_lightMapCoord.xy + vec2(
-        rand2(vec2(rand(gl_FragCoord.x * 0.3), gl_FragCoord.y * 0.5)) - 0.5,
-        rand2(vec2(rand(gl_FragCoord.y * 0.4), gl_FragCoord.x * 0.1)) - 0.5
+    vec3 shadowSampleCoord = vec3(v_lightMapCoord.xy, 0.0) + vec3(
+        rand2(vec2(rand(gl_FragCoord.x * 0.3 ), gl_FragCoord.y * 0.5)) - 0.5,
+        rand2(vec2(rand(gl_FragCoord.y * 0.4 ), gl_FragCoord.x * 0.1)) - 0.5,
+        rand2(vec2(rand(gl_FragCoord.x * 0.44), gl_FragCoord.y * 0.2)) - 0.5
     ) * 0.0014;
 
-    vec4 shadowInfo = texture2D(u_shadowMap, shadowSampleCoord);
+    vec4 shadowInfo = texture2D(u_shadowMap, shadowSampleCoord.xy);
 
     float brightness = 0.9;
-    if(shadowInfo.w < v_lightMapCoord.z - 0.005) {
+    if(shadowInfo.w < v_lightMapCoord.z + shadowSampleCoord.z - 0.005) {
         brightness = 0.6;
     }
 
