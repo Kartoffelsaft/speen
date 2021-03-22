@@ -30,7 +30,7 @@ void main() {
 
     gl_FragData[1] = vec4(
         v_position.z,
-        1.0,
+        0.0,
         0.0,
         0.0
     );

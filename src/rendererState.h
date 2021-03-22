@@ -13,6 +13,10 @@ char const * const WINDOW_NAME = "First bgfx";
 bgfx::ViewId const RENDER_SCENE_ID = 1;
 bgfx::ViewId const RENDER_SHADOW_ID = 0;
 bgfx::ViewId const RENDER_SCREEN_ID = 2;
+bgfx::ViewId const RENDER_BLIT_MOUSE_ID = 3;
+
+float const NEAR_CLIP = 1.3f;
+float const FAR_CLIP = 250.f;
 
 struct RendererState {
     static RendererState init();
@@ -30,12 +34,15 @@ struct RendererState {
 
     bgfx::TextureHandle screenTexture;
     bgfx::TextureHandle screenData;
+    bgfx::TextureHandle screenDepth;
     bgfx::FrameBufferHandle screenBuffer;
 
     bgfx::TextureHandle shadowMap;
     bgfx::FrameBufferHandle shadowMapBuffer;
 
     Mat4 lightMapMtx;
+    Mat4 cameraViewMtx;
+    Mat4 cameraProjectionMtx;
     Mat4 cameraMtx;
     bx::Vec3 cameraPos;
 

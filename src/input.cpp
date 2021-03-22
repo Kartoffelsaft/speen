@@ -32,35 +32,31 @@ void InputState::updateInputs() {
 }
 
 bx::Vec3 getScreenWorldPos(float x, float y) {
-    Mat4 camInv;
-    bx::mtxInverse(camInv.data(), rendererState.cameraMtx.data());
-
-    auto destination = bx::mul({x * 2 - 1, -y * 2 + 1, 1}, camInv.data());
-    auto direction = bx::normalize(destination);
-
-    // take the direction of the ray to be a function of type m -> (x, y, z)
-    auto getRayPos = [&](float multiplier){ return bx::add(rendererState.cameraPos, bx::mul(direction, multiplier)); };
-    // and the heightmap of the world to be a function of type (x, y) -> h
-    // see: World::sampleHeight
-    // Compose them (with some technicalities)
-    auto f = [&](float x) {
-        auto rayPos = getRayPos(x);
-        return world.sampleHeight(rayPos.x, rayPos.z) - rayPos.y;
-    };
-    // and apply newton's method
-    // https://en.wikipedia.org/wiki/Newton%27s_method
-    float const X_0 = 2;
-    float const DELTAX = 0.95;
-    float const MAX_INACCURACY = 0.05;
-    int const MAX_ITERATIONS = 3;
-    float nx = X_0;
-    float fx;
-    int i = 0;
-    while(std::abs(fx = f(nx)) > MAX_INACCURACY && i < MAX_ITERATIONS) {
-        float dfx = (f(nx + DELTAX) - fx) * (1 / DELTAX);
-        nx = nx - (fx / dfx);
-        i++;
+    static float depth;
+    static bgfx::TextureHandle depthTexture = BGFX_INVALID_HANDLE;
+    if(!bgfx::isValid(depthTexture)) [[unlikely]] {
+        depthTexture = bgfx::createTexture2D(1, 1, false, 1, bgfx::TextureFormat::D32F, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
     }
 
-    return getRayPos(nx);
+    auto px = (uint64_t)((x    ) * config.graphics.resolutionX);
+    auto py = (uint64_t)((1 - y) * config.graphics.resolutionY);
+
+    bgfx::setViewClear(RENDER_BLIT_MOUSE_ID, BGFX_CLEAR_DEPTH);
+    // TODO: properly clamp for (literal) edge case
+    bgfx::blit(RENDER_BLIT_MOUSE_ID, depthTexture, 0, 0, rendererState.screenDepth, px, py, 1, 1);
+    bgfx::readTexture(depthTexture, &depth);
+
+    Mat4 viewInv;
+    bx::mtxInverse(viewInv.data(), rendererState.cameraViewMtx.data());
+
+    Mat4 projInv;
+    bx::mtxInverse(projInv.data(), rendererState.cameraProjectionMtx.data());
+
+    auto xy = bx::mul({x * 2 - 1, -y * 2 + 1, 0}, projInv.data());
+    // holy shit it took me like at least 10 hours to figure out this is the equasion I need
+    // yet I still have no idea how it works
+    // touch with peril
+    auto z = 0.5 * (FAR_CLIP + NEAR_CLIP) * (2 * NEAR_CLIP) / (FAR_CLIP - depth * (FAR_CLIP - NEAR_CLIP));
+    
+    return bx::mul({xy.x * z, xy.y * z, z}, viewInv.data());
 }

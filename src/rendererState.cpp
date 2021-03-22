@@ -136,7 +136,7 @@ RendererState RendererState::init() {
                 config.graphics.resolutionY, 
                 false, 
                 1, 
-                bgfx::TextureFormat::D24, 
+                bgfx::TextureFormat::D32F, 
                 BGFX_TEXTURE_RT
             ),
         };
@@ -150,6 +150,7 @@ RendererState RendererState::init() {
 
         ret.screenTexture = screenTextures.at(0);
         ret.screenData = screenTextures.at(1);
+        ret.screenDepth = screenTextures.at(2);
         return bgfx::createFrameBuffer(screenAttachments.size(), screenAttachments.data(), true);
     }();
 
@@ -228,7 +229,7 @@ void RendererState::finishRender() {
 
     bgfx::submit(RENDER_SCREEN_ID, screenProgram);
 
-    bgfx::frame();
+    this->frame = bgfx::frame();
 }
 
 void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth){
@@ -254,21 +255,19 @@ void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, 
 }
 
 void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to) {
-    Mat4 view;
-    bx::mtxLookAt(view.data(), from, to);
+    bx::mtxLookAt(cameraViewMtx.data(), from, to);
 
-    Mat4 projection;
     bx::mtxProj(
-        projection.data(),
+        cameraProjectionMtx.data(),
         (float)config.graphics.fieldOfView,
         (float)config.graphics.resolutionX/(float)config.graphics.resolutionY,
-        0.01f,
-        1000.f,
+        NEAR_CLIP,
+        FAR_CLIP,
         bgfx::getCaps()->homogeneousDepth
     );
 
-    bgfx::setViewTransform(RENDER_SCENE_ID, view.data(), projection.data());
+    bgfx::setViewTransform(RENDER_SCENE_ID, cameraViewMtx.data(), cameraProjectionMtx.data());
     cameraPos = from;
-    bx::mtxMul(cameraMtx.data(), view.data(), projection.data());
+    bx::mtxMul(cameraMtx.data(), cameraViewMtx.data(), cameraProjectionMtx.data());
 }
 

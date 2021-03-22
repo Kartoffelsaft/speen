@@ -148,8 +148,6 @@ int main() {
         std::chrono::duration<float> timeElapsed = frameEnd - frameStart;
         lastFrameTimeElapsed = timeElapsed.count();
         frameStart = frameEnd;
-
-        rendererState.frame++;
     }
 
     SDL_DestroyWindow(rendererState.window);
