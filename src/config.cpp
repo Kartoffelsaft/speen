@@ -5,9 +5,12 @@
 
 #include "config.h"
 
-std::string const settingsFilename = "settings.toml";
+// for whatever reason if these are constant strings they
+// won't be initialized whenever the config needs them
+// making them functions/lambdas seems to fix it though
+auto settingsFilename = [](){ return "settings.toml"; };
 
-std::string const defaultSettings = R"TOML(
+auto defaultSettings = [](){ return R"TOML(
 [graphics]
 resolutionX = 1280
 resolutionY = 720
@@ -28,17 +31,17 @@ left = "A"
 right = "D"
 up = "R"
 down = "F"
-)TOML";
+)TOML"; };
 
 Config Config::init() {
-    std::filesystem::path settings{settingsFilename};
+    std::filesystem::path settings{settingsFilename()};
 
     if(!std::filesystem::exists(settings)) {
-        std::ofstream createSettings(settingsFilename);
-        createSettings << defaultSettings;
+        std::ofstream createSettings(settingsFilename());
+        createSettings << defaultSettings();
     }
 
-    toml::table settingsData = toml::parse_file(settingsFilename);
+    toml::table settingsData = toml::parse_file(settingsFilename());
 
 #define GET_SETTING(SETTING_NAME, SETTING_DEFAULT) .SETTING_NAME = [&](){\
 return settingsData[SETTING_SECTION][#SETTING_NAME].value_or(SETTING_DEFAULT);\
