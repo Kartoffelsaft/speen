@@ -1,5 +1,6 @@
 #include <bx/math.h>
 #include <cmath>
+#include <algorithm>
 
 #include "input.h"
 #include "rendererState.h"
@@ -38,11 +39,13 @@ bx::Vec3 getScreenWorldPos(float x, float y) {
         depthTexture = bgfx::createTexture2D(1, 1, false, 1, bgfx::TextureFormat::D32F, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
     }
 
-    auto px = (uint64_t)((x    ) * config.graphics.resolutionX);
-    auto py = (uint64_t)((1 - y) * config.graphics.resolutionY);
+    auto px = (int64_t)((x    ) * config.graphics.resolutionX);
+    auto py = (int64_t)((1 - y) * config.graphics.resolutionY);
+
+    px = std::clamp(px, 0l, config.graphics.resolutionX - 1);
+    py = std::clamp(py, 0l, config.graphics.resolutionY - 1);
 
     bgfx::setViewClear(RENDER_BLIT_MOUSE_ID, BGFX_CLEAR_DEPTH);
-    // TODO: properly clamp for (literal) edge case
     bgfx::blit(RENDER_BLIT_MOUSE_ID, depthTexture, 0, 0, rendererState.screenDepth, px, py, 1, 1);
     bgfx::readTexture(depthTexture, &depth);
 
