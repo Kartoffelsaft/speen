@@ -9,11 +9,49 @@
 #include <cfenv>
 
 using Mat4 = std::array<float, 16>;
-
+    
+/**
+ * @brief returns an integer and a fractional component of the input number, towards -inf
+ * 
+ * @param x 
+ * @return std::tuple<int, float> A tuple of the integer and fractional component
+ */
 std::tuple<int, float> floorFract(float const x);
-float interpolate(float const s00, float const s01, float const s10, float const s11, float const x, float const y);
 
-// https://en.wikipedia.org/wiki/Kernel_(image_processing)
+/**
+ * @brief Interpolates between the corners of a square
+ * 
+ * @param s00 top left
+ * @param s01 bottom left
+ * @param s10 top right
+ * @param s11 bottom right
+ * @param x Horizontal component where 0.0 is left and 1.0 is right
+ * @param y Vertical component where 0.0 is top and 1.0 is bottom
+ * @return float 
+ */
+float interpolate(
+    float const s00, 
+    float const s01, 
+    float const s10, 
+    float const s11, 
+    float const x, 
+    float const y
+);
+
+/**
+ * @brief Applies a convolutional kernel on a square array
+ * Final image will be shrunk to deal with edges
+ * 
+ * see:
+ * https://en.wikipedia.org/wiki/Kernel_(image_processing)
+ * 
+ * @tparam ImgSize The input image size
+ * @tparam ConvSize The kernel size
+ * @param image The input image
+ * @param kernel The kernel
+ * @param scale How much to multiply the output by (usually to keep the return values between 0.0 and 1.0)
+ * @return std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> 
+ */
 template<std::size_t ImgSize, std::size_t ConvSize>
 std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> convolute(
     std::array<float, ImgSize * ImgSize> const image,
@@ -36,6 +74,21 @@ std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> convolute
     return ret;
 }
 
+/**
+ * @brief Generates a square of noise
+ * 
+ * @tparam ImgSize how big the output image will be
+ * @param seed The seed for the random number generator
+ * @param offsetX Horizontal offset of the noise generator
+ * @param offsetY Vertical offset of the noise generator
+ * @param resolutions A vector of all the octaves of the noise generator
+ *        Each element contains (in this order):
+ *            Scale: A number in the range of (0.0, 1.0] describing how high frequency the noise is 
+ *                (1.0 is effectively white noise and 0.01 is very smooth)
+ *            Amplification: How much weight is given to this octave
+ *            Seed offset: An additional seed to generate something different than other octaves
+ * @return std::array<float, ImgSize * ImgSize> 
+ */
 template<std::size_t ImgSize>
 std::array<float, ImgSize * ImgSize> generateNoise(
     std::size_t const seed,
@@ -71,6 +124,3 @@ std::array<float, ImgSize * ImgSize> generateNoise(
 
     return ret;
 }
-
-float smoothFloor(float const x);
-float smoothClamp(float const x, float const min, float const max);

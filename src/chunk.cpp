@@ -23,7 +23,6 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
 
     for(int i = 0; i < ret.tiles.size(); i++) {
         ret.tiles[i].height = postConvHeightMap[i] * 5 - 20;
-        //ret.tiles[i].height = smoothClamp(smoothFloor(postConvHeightMap[i] + 0.2) * 4, -2, 9) * 4;
     }
 
     return ret;
