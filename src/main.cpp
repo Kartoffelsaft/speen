@@ -36,6 +36,12 @@ int main() {
                 donutOrientation[12] = newPos.x;
                 donutOrientation[13] = newPos.y;
                 donutOrientation[14] = newPos.z;
+
+                if(inputs.buttonsJustPressed.contains(SDL_BUTTON_LEFT)) {
+                    auto newPlacement = entitySystem.newEntity();
+                    entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
+                    entitySystem.getComponentData<ModelInstance>(newPlacement)->orientation = donutOrientation;
+                }
             }
         });
     }

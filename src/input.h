@@ -8,6 +8,8 @@
 struct InputState {
     std::unordered_set<SDL_Keycode> keysHeld;
     std::unordered_set<SDL_Keycode> keysJustPressed;
+    std::unordered_set<Uint8> buttonsHeld;
+    std::unordered_set<Uint8> buttonsJustPressed;
 
     int mousePosX;
     int mousePosY;

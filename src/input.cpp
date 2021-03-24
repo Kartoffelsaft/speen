@@ -9,6 +9,7 @@
 
 void InputState::updateInputs() {
     keysJustPressed.clear();
+    buttonsJustPressed.clear();
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
         switch (e.type) {
@@ -21,6 +22,13 @@ void InputState::updateInputs() {
                 break;
             case SDL_KEYUP:
                 keysHeld.erase(e.key.keysym.sym);
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                buttonsJustPressed.insert(e.button.button);
+                buttonsHeld.insert(e.button.button);
+                break;
+            case SDL_MOUSEBUTTONUP:
+                buttonsHeld.erase(e.button.button);
                 break;
             case SDL_MOUSEMOTION:
                 mousePosX = e.motion.x;
