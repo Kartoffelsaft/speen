@@ -18,3 +18,19 @@ float smoothClamp(float const x, float const min, float const max) {
     auto perlin = [](float const x){ return x * x * x * (x * (x * 6 - 15) + 10); };
     return perlin(normalized) * (max - min) + min;
 }
+
+float interpolate(
+    float const s00, 
+    float const s01, 
+    float const s10, 
+    float const s11, 
+    float const x, 
+    float const y
+) {
+    return  (
+        s00 * (1 - x) * (1 - y) +
+        s01 * (1 - x) * y +
+        s10 * x * (1 - y) +
+        s11 * x * y
+    );
+}

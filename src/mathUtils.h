@@ -11,6 +11,7 @@
 using Mat4 = std::array<float, 16>;
 
 std::tuple<int, float> floorFract(float const x);
+float interpolate(float const s00, float const s01, float const s10, float const s11, float const x, float const y);
 
 // https://en.wikipedia.org/wiki/Kernel_(image_processing)
 template<std::size_t ImgSize, std::size_t ConvSize>
@@ -64,12 +65,7 @@ std::array<float, ImgSize * ImgSize> generateNoise(
             auto r10 = getPsuedoRand(u + 1, v, seedOffset);
             auto r11 = getPsuedoRand(u + 1, v + 1, seedOffset);
 
-            ret[j * ImgSize + i] += amplification * (
-                r00 * (1 - uFract) * (1 - vFract) +
-                r01 * (1 - uFract) * vFract +
-                r10 * uFract * (1 - vFract) +
-                r11 * uFract * vFract
-            );
+            ret[j * ImgSize + i] += amplification * interpolate(r00, r01, r10, r11, uFract, vFract);
         }
     }
 

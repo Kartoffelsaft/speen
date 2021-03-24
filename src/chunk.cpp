@@ -286,11 +286,13 @@ float World::sampleHeight(float x, float z) {
     auto [ix, rx] = floorFract(x);
     auto [iz, rz] = floorFract(z);
 
-    return 
-        this->getTile(ix    , iz    ).height * (1 - rx) * (1 - rz)
-      + this->getTile(ix + 1, iz    ).height * (    rx) * (1 - rz)
-      + this->getTile(ix    , iz + 1).height * (1 - rx) * (    rz)
-      + this->getTile(ix + 1, iz + 1).height * (    rx) * (    rz);
+    return interpolate(
+        this->getTile(ix    , iz    ).height, 
+        this->getTile(ix    , iz + 1).height, 
+        this->getTile(ix + 1, iz    ).height, 
+        this->getTile(ix + 1, iz + 1).height, 
+        rx, rz
+    );
 }
 
 #pragma clang diagnostic pop
