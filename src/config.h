@@ -3,6 +3,8 @@
 #include <SDL2/SDL.h>
 #include <unordered_set>
 
+#include "input.h"
+
 struct Config {
     static Config init();
 
@@ -18,12 +20,13 @@ struct Config {
     } graphics;
 
     struct {
-        std::unordered_set<SDL_Keycode> forward;
-        std::unordered_set<SDL_Keycode> back;
-        std::unordered_set<SDL_Keycode> left;
-        std::unordered_set<SDL_Keycode> right;
-        std::unordered_set<SDL_Keycode> up;
-        std::unordered_set<SDL_Keycode> down;
+        std::unordered_set<InputDatum> forward;
+        std::unordered_set<InputDatum> back;
+        std::unordered_set<InputDatum> left;
+        std::unordered_set<InputDatum> right;
+        std::unordered_set<InputDatum> up;
+        std::unordered_set<InputDatum> down;
+        std::unordered_set<InputDatum> place;
     } keybindings;
 };
 

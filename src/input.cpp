@@ -8,8 +8,7 @@
 #include "chunk.h"
 
 void InputState::updateInputs() {
-    keysJustPressed.clear();
-    buttonsJustPressed.clear();
+    inputsJustPressed.clear();
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
         switch (e.type) {
@@ -17,18 +16,18 @@ void InputState::updateInputs() {
                 rendererState.windowShouldClose = true;
                 break;
             case SDL_KEYDOWN:
-                keysJustPressed.insert(e.key.keysym.sym);
-                keysHeld.insert(e.key.keysym.sym);
+                inputsJustPressed.insert(e.key.keysym.sym);
+                inputsHeld.insert(e.key.keysym.sym);
                 break;
             case SDL_KEYUP:
-                keysHeld.erase(e.key.keysym.sym);
+                inputsHeld.erase(e.key.keysym.sym);
                 break;
             case SDL_MOUSEBUTTONDOWN:
-                buttonsJustPressed.insert(e.button.button);
-                buttonsHeld.insert(e.button.button);
+                inputsJustPressed.insert(e.button.button);
+                inputsHeld.insert(e.button.button);
                 break;
             case SDL_MOUSEBUTTONUP:
-                buttonsHeld.erase(e.button.button);
+                inputsHeld.erase(e.button.button);
                 break;
             case SDL_MOUSEMOTION:
                 mousePosX = e.motion.x;

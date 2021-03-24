@@ -37,7 +37,7 @@ int main() {
                 donutOrientation[13] = newPos.y;
                 donutOrientation[14] = newPos.z;
 
-                if(inputs.buttonsJustPressed.contains(SDL_BUTTON_LEFT)) {
+                for(auto i: inputs.inputsJustPressed) if(config.keybindings.place.contains(i)) {
                     auto newPlacement = entitySystem.newEntity();
                     entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
                     entitySystem.getComponentData<ModelInstance>(newPlacement)->orientation = donutOrientation;
@@ -74,7 +74,7 @@ int main() {
             obj->velY = 0.f;
             obj->velZ = 0.f;
 
-            for(auto inp: inputs.keysHeld) {
+            for(auto inp: inputs.inputsHeld) {
                 if(config.keybindings.forward.contains(inp)) {
                     obj->velX = -8.f;
                 } if(config.keybindings.back.contains(inp)) {
