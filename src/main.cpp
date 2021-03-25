@@ -32,7 +32,7 @@ int main() {
         entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
         entitySystem.addComponent(donut, InputComponent{
             .onInput = [](InputState const & inputs, EntityId const id) {
-                auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(id)->orientation;
+                auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(id).orientation;
                 auto newPos = getScreenWorldPos(inputs.mousePosXNormal, inputs.mousePosYNormal);
                 donutOrientation[12] = newPos.x;
                 donutOrientation[13] = newPos.y;
@@ -41,7 +41,7 @@ int main() {
                 for(auto i: inputs.inputsJustPressed) if(config.keybindings.place.contains(i)) {
                     auto newPlacement = entitySystem.newEntity();
                     entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
-                    entitySystem.getComponentData<ModelInstance>(newPlacement)->orientation = donutOrientation;
+                    entitySystem.getComponentData<ModelInstance>(newPlacement).orientation = donutOrientation;
                 }
             }
         });
@@ -57,16 +57,16 @@ int main() {
     while(!rendererState.windowShouldClose) {
         inputState.updateInputs();
         for(auto const & entity: entitySystem.filterByComponent<InputComponent>()) {
-            auto* const inputHandler = entitySystem.getComponentData<InputComponent>(entity);
-            inputHandler->onInput(inputState, entity);
+            auto& inputHandler = entitySystem.getComponentData<InputComponent>(entity);
+            inputHandler.onInput(inputState, entity);
         }
 
         for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
-            entitySystem.getComponentData<OnFrameComponent>(entity)->onFrame(entity, lastFrameTimeElapsed);
+            entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, lastFrameTimeElapsed);
         }
 
         for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
-            entitySystem.getComponentData<PhysicsComponent>(entity)->step(entity, lastFrameTimeElapsed);
+            entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, lastFrameTimeElapsed);
         }
 
         bgfx::setUniform(
@@ -89,7 +89,7 @@ int main() {
         }
        
         for(auto const & e: entitySystem.filterByComponent<ModelInstance>()) {
-            entitySystem.getComponentData<ModelInstance>(e)->draw();
+            entitySystem.getComponentData<ModelInstance>(e).draw();
         }
 
         rendererState.finishRender();

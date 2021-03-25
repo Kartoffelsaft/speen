@@ -10,7 +10,7 @@
 EntityId createWorldEntity() { 
     auto terrain = entitySystem.newEntity();
     entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, 1)));
-    auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
+    auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain).orientation;
     terrainOrientation[12] = 0.f;
     terrainOrientation[13] = 0.f;
     terrainOrientation[14] = 0.f;

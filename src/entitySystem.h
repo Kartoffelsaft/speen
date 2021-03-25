@@ -49,8 +49,8 @@ struct EntitySystem {
     }
 
     template<typename T>
-    T* getComponentData(EntityId const id) {
-        return &getComponent<T>().at(id);
+    T& getComponentData(EntityId const id) {
+        return getComponent<T>().at(id);
     }
     
     template<typename T>
