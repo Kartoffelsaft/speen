@@ -6,6 +6,7 @@ SRC_DIR := ./src
 BUILD_DIR := ./.build
 SRCS := $(shell find $(SRC_DIR) -name *.cpp)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+DEPENDS := $(SRCS:%=$(BUILD_DIR)/%.d)
 LIB_OBJS := \
     bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so \
     $(BUILD_DIR)/dear-imgui/imgui.so
@@ -88,9 +89,11 @@ compile_commands.json: $(SRCS)
 a.out: $(OBJS)
 > $(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LIB_OBJS) $(INCLUDES)
 
-$(BUILD_DIR)/%.cpp.o: %.cpp
+-include $(DEPENDS)
+
+$(BUILD_DIR)/%.cpp.o: %.cpp Makefile
 > mkdir -p $(dir $@)
-> $(CXX) $(INCLUDES) $(DEFINES) $(CPPFLAGS) -c $< -o $@
+> $(CXX) $(INCLUDES) $(DEFINES) $(CPPFLAGS) -MMD -MP -c $< -o $@
 
 clean:
 > rm -r .build cookedModels shaderBuild
