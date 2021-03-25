@@ -6,6 +6,9 @@ SRC_DIR := ./src
 BUILD_DIR := ./.build
 SRCS := $(shell find $(SRC_DIR) -name *.cpp)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+LIB_OBJS := \
+    bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so \
+    $(BUILD_DIR)/dear-imgui/imgui.so
 
 CPPFLAGS := \
     -O0 \
@@ -18,15 +21,15 @@ LDFLAGS := \
     -lX11 \
     -ldl \
     -lpthread \
-    -lrt \
-    bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
+    -lrt
 
 INCLUDES := \
     -Ibgfx/include \
     -Ibx/include \
     -Ibimg/include \
     -Itinygltf \
-    -Itomlplusplus/include
+    -Itomlplusplus/include \
+    -Iimgui
 
 DEFINES := 
 
@@ -50,12 +53,16 @@ MODEL_TARGETS := $(addprefix $(MODEL_BUILD_DIR)/,$(addsuffix .pmdl,$(MODEL_SRCS)
 endif
 MODEL_SRCS := $(addprefix $(MODEL_SRC_DIR)/,$(MODEL_SRCS))
 
-all: bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so $(SHADER_TARGETS) models a.out compile_commands.json
+all: $(LIB_OBJS) $(SHADER_TARGETS) models a.out compile_commands.json
 
 bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so:
 > cd bgfx
 > make linux-debug64
 > cd ..
+
+$(BUILD_DIR)/dear-imgui/imgui.so: $(shell find imgui -maxdepth 1 -name *.cpp)
+> mkdir -p $(dir $@)
+> g++ -shared -fPIC -O3 -o $@ $^
 
 $(SHADER_BUILD_DIR)/v%.h: $(SHADER_SRC_DIR)/v%.sc
 > mkdir -p $(SHADER_BUILD_DIR)
@@ -79,7 +86,7 @@ compile_commands.json: $(SRCS)
 > echo 'compile_commands.json creation not set up yet'
 
 a.out: $(OBJS)
-> $(CXX) $(OBJS) -o $@ $(LDFLAGS) $(INCLUDES)
+> $(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LIB_OBJS) $(INCLUDES)
 
 $(BUILD_DIR)/%.cpp.o: %.cpp
 > mkdir -p $(dir $@)
