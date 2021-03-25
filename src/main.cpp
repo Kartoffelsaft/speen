@@ -15,6 +15,7 @@
 #include "chunk.h"
 #include "frame.h"
 #include "physics.h"
+#include "player.h"
 
 int main() {
     bgfx::setDebug(BGFX_DEBUG_STATS);
@@ -46,66 +47,9 @@ int main() {
         });
     }
 
-    {
-        auto terrain = entitySystem.newEntity();
-        entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, config.graphics.renderDistance)));
-        auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
-        terrainOrientation[12] = 0.f;
-        terrainOrientation[13] = 0.f;
-        terrainOrientation[14] = 0.f;
-    }
+    createWorldEntity();
 
-    auto mokey = entitySystem.newEntity();
-    entitySystem.addComponent(mokey, ModelInstance::fromModelPtr(LOAD_MODEL("mokey.glb")));
-    entitySystem.addComponent(mokey, PhysicsComponent{
-        .posX = 0,
-        .posY = 0,
-        .posZ = 0,
-        .velX = 0,
-        .velY = 0,
-        .velZ = 0,
-        .grounded = true
-    });
-    entitySystem.addComponent(mokey, InputComponent{
-        .onInput = [](InputState const & inputs, EntityId const id) {
-            auto* obj = entitySystem.getComponentData<PhysicsComponent>(id);
-
-            obj->velX = 0.f;
-            obj->velY = 0.f;
-            obj->velZ = 0.f;
-
-            for(auto inp: inputs.inputsHeld) {
-                if(config.keybindings.forward.contains(inp)) {
-                    obj->velX = -8.f;
-                } if(config.keybindings.back.contains(inp)) {
-                    obj->velX = +8.f;
-                } if(config.keybindings.left.contains(inp)) {
-                    obj->velZ = -8.f;
-                } if(config.keybindings.right.contains(inp)) {
-                    obj->velZ = +8.f;
-                } if(config.keybindings.up.contains(inp)) {
-                    obj->velY = +8.f;
-                } if(config.keybindings.down.contains(inp)) {
-                    obj->velY = -8.f;
-                }
-            }
-
-            int chunkX = ((int)obj->posX) / 16;
-            int chunkZ = ((int)obj->posZ) / 16;
-
-            rendererState.setCameraOrientation(
-                {obj->posX + 5, obj->posY + 7, obj->posZ + 5},
-                {obj->posX, obj->posY, obj->posZ}
-            );
-            rendererState.setLightOrientation(
-                {(float)chunkX * 16 - 48, 19, (float)chunkZ * 16 + 10},
-                {(float)chunkX * 16, 0, (float)chunkZ * 16},
-                50,
-                80
-            );
-            world.updateModel(chunkX, chunkZ, config.graphics.renderDistance);
-        }
-    });
+    createPlayer();
 
     auto frameStart = std::chrono::high_resolution_clock::now();
     float lastFrameTimeElapsed = 0.f;

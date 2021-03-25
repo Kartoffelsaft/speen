@@ -4,6 +4,9 @@
 #include <memory>
 
 #include "model.h"
+#include "entitySystem.h"
+
+EntityId createWorldEntity();
 
 struct Tile {
     float height;

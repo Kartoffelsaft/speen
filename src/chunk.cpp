@@ -5,6 +5,18 @@
 
 #include "chunk.h"
 #include "mathUtils.h"
+#include "modelInstance.h"
+
+EntityId createWorldEntity() { 
+    auto terrain = entitySystem.newEntity();
+    entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, 1)));
+    auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain)->orientation;
+    terrainOrientation[12] = 0.f;
+    terrainOrientation[13] = 0.f;
+    terrainOrientation[14] = 0.f;
+
+    return terrain;
+}
 
 Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
     Chunk ret;
