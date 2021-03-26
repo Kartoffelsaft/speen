@@ -13,19 +13,21 @@ void InputState::updateInputs() {
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
         if(!processEventGui(e)) switch (e.type) {
-            case SDL_QUIT:
-                rendererState.windowShouldClose = true;
-                break;
             case SDL_KEYDOWN:
                 inputsJustPressed.insert(e.key.keysym.sym);
                 inputsHeld.insert(e.key.keysym.sym);
                 break;
-            case SDL_KEYUP:
-                inputsHeld.erase(e.key.keysym.sym);
-                break;
             case SDL_MOUSEBUTTONDOWN:
                 inputsJustPressed.insert(e.button.button);
                 inputsHeld.insert(e.button.button);
+                break;
+        }
+        /* reguardless */ switch(e.type) {
+            case SDL_QUIT:
+                rendererState.windowShouldClose = true;
+                break;
+            case SDL_KEYUP:
+                inputsHeld.erase(e.key.keysym.sym);
                 break;
             case SDL_MOUSEBUTTONUP:
                 inputsHeld.erase(e.button.button);
