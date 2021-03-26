@@ -5,6 +5,7 @@
 #include "gui.h"
 #include "rendererState.h"
 #include "mathUtils.h"
+#include "config.h"
 
 static bgfx::TextureHandle g_FontTexture = BGFX_INVALID_HANDLE;
 static bgfx::UniformHandle g_AttribLocationTex = BGFX_INVALID_HANDLE;
@@ -169,16 +170,104 @@ void ImGui_Implbgfx_NewFrame()
     }
 }
 
+// TODO: implement clipboard
+// TODO: implement mouse cursors (like the I bar when you mouse ove editable text)
+
+bool ImGui_ImplSDL2_ProcessEvent(SDL_Event const event) {
+    ImGuiIO& io = ImGui::GetIO();
+    switch (event.type) {
+        case SDL_MOUSEWHEEL: {
+            io.MouseWheel  += event.wheel.y;
+            io.MouseWheelH += event.wheel.x;
+
+            return io.WantCaptureMouse;
+        }
+        case SDL_MOUSEBUTTONDOWN: 
+        case SDL_MOUSEBUTTONUP: 
+        case SDL_MOUSEMOTION: {
+            int mx, my;
+            Uint32 mButtons = SDL_GetMouseState(&mx, &my);
+            io.MouseDown[0] = mButtons & SDL_BUTTON(SDL_BUTTON_LEFT);
+            io.MouseDown[1] = mButtons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+            io.MouseDown[2] = mButtons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+            io.MousePos = ImVec2((float)mx, (float)my);
+
+            return io.WantCaptureMouse;
+        }
+        case SDL_TEXTINPUT: {
+            io.AddInputCharactersUTF8(event.text.text);
+            return io.WantCaptureKeyboard;
+        }
+        case SDL_KEYDOWN:
+        case SDL_KEYUP: {
+            auto key = event.key.keysym.scancode;
+            io.KeysDown[key] = event.type == SDL_KEYDOWN;
+            auto mods = SDL_GetModState();
+            io.KeyShift = mods & KMOD_SHIFT;
+            io.KeyCtrl = mods & KMOD_CTRL;
+            io.KeyAlt = mods & KMOD_ALT;
+
+            return io.WantCaptureKeyboard;
+        }
+    }
+
+    return false;
+}
+
+void ImGui_ImplSDL2_Init() {
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.DisplaySize = ImVec2(
+        config.graphics.resolutionX,
+        config.graphics.resolutionY
+    );
+
+    io.KeyMap[ImGuiKey_Tab] = SDL_SCANCODE_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
+    io.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
+    io.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
+    io.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
+    io.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
+    io.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
+    io.KeyMap[ImGuiKey_Insert] = SDL_SCANCODE_INSERT;
+    io.KeyMap[ImGuiKey_Delete] = SDL_SCANCODE_DELETE;
+    io.KeyMap[ImGuiKey_Backspace] = SDL_SCANCODE_BACKSPACE;
+    io.KeyMap[ImGuiKey_Space] = SDL_SCANCODE_SPACE;
+    io.KeyMap[ImGuiKey_Enter] = SDL_SCANCODE_RETURN;
+    io.KeyMap[ImGuiKey_Escape] = SDL_SCANCODE_ESCAPE;
+    io.KeyMap[ImGuiKey_KeyPadEnter] = SDL_SCANCODE_KP_ENTER;
+    io.KeyMap[ImGuiKey_A] = SDL_SCANCODE_A;
+    io.KeyMap[ImGuiKey_C] = SDL_SCANCODE_C;
+    io.KeyMap[ImGuiKey_V] = SDL_SCANCODE_V;
+    io.KeyMap[ImGuiKey_X] = SDL_SCANCODE_X;
+    io.KeyMap[ImGuiKey_Y] = SDL_SCANCODE_Y;
+    io.KeyMap[ImGuiKey_Z] = SDL_SCANCODE_Z;
+}
+
+void ImGui_ImplSDL2_Shutdown() {
+
+}
+
+void ImGui_ImplSDL2_NewFrame() {
+    // TODO: Somehow set io.deltatime here (the source of the datum is in main())
+}
+
 void initGui() {
     ImGui::CreateContext();
 
     ImGui_Implbgfx_Init();
+    ImGui_ImplSDL2_Init();
+}
 
-    ImGui::GetIO().DisplaySize = ImVec2(3440, 1440);
+bool processEventGui(SDL_Event const event) {
+    return ImGui_ImplSDL2_ProcessEvent(event);
 }
 
 void drawGui() {
     ImGui_Implbgfx_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
 
     ImGui::NewFrame();
     ImGui::ShowDemoWindow();
@@ -188,6 +277,7 @@ void drawGui() {
 
 void terminateGui() {
     ImGui_Implbgfx_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
 
     ImGui::DestroyContext();
 }

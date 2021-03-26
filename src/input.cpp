@@ -6,12 +6,13 @@
 #include "rendererState.h"
 #include "config.h"
 #include "chunk.h"
+#include "gui.h"
 
 void InputState::updateInputs() {
     inputsJustPressed.clear();
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
-        switch (e.type) {
+        if(!processEventGui(e)) switch (e.type) {
             case SDL_QUIT:
                 rendererState.windowShouldClose = true;
                 break;
