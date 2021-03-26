@@ -16,9 +16,12 @@
 #include "frame.h"
 #include "physics.h"
 #include "player.h"
+#include "gui.h"
 
 int main() {
     bgfx::setDebug(BGFX_DEBUG_STATS);
+
+    initGui();
 
     entitySystem.initComponent<ModelInstance>();
     entitySystem.initComponent<InputComponent>();
@@ -99,6 +102,8 @@ int main() {
         lastFrameTimeElapsed = timeElapsed.count();
         frameStart = frameEnd;
     }
+
+    terminateGui();
 
     SDL_DestroyWindow(rendererState.window);
 

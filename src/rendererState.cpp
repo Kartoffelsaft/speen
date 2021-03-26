@@ -4,6 +4,7 @@
 
 #include "rendererState.h"
 #include "config.h"
+#include "gui.h"
 
 bgfx::ShaderHandle createShaderFromArray(uint8_t const * const data, size_t const len) {
     bgfx::Memory const * mem = bgfx::copy(data, len);
@@ -178,7 +179,6 @@ RendererState RendererState::init() {
     bgfx::setViewRect(RENDER_SHADOW_ID, 0, 0, config.graphics.shadowMapResolution, config.graphics.shadowMapResolution);
     bgfx::setViewFrameBuffer(RENDER_SHADOW_ID, ret.shadowMapBuffer);
     bgfx::setViewRect(RENDER_SCREEN_ID, 0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
-    bgfx::setViewFrameBuffer(RENDER_SCREEN_ID, BGFX_INVALID_HANDLE);
 
     ret.uniforms = {
         .u_shadowMap   = bgfx::createUniform("u_shadowMap", bgfx::UniformType::Sampler),
@@ -193,11 +193,14 @@ RendererState RendererState::init() {
     return ret;
 }
 
-void RendererState::finishRender() {
+void RendererState::drawTextureToScreen(bgfx::TextureHandle texture, float const z) {
     bgfx::TransientVertexBuffer screenSpaceBuffer;
     bgfx::TransientIndexBuffer indices;
     bgfx::VertexLayout layout;
-    layout.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
+    layout.begin()
+        .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+        .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+        .end();
     bgfx::allocTransientVertexBuffer(&screenSpaceBuffer, 4, layout);
     auto ssbData = (float*)screenSpaceBuffer.data;
     bgfx::allocTransientIndexBuffer(&indices, 6);
@@ -205,16 +208,27 @@ void RendererState::finishRender() {
 
     ssbData[0 ] = 0.0f;
     ssbData[1 ] = 0.0f;
-    ssbData[2 ] = 0.0f;
+    ssbData[2 ] = z   ;
     ssbData[3 ] = 0.0f;
     ssbData[4 ] = 1.0f;
+
     ssbData[5 ] = 0.0f;
-    ssbData[6 ] = 1.0f;
-    ssbData[7 ] = 0.0f;
+    ssbData[6 ] = config.graphics.resolutionY;
+    ssbData[7 ] = z   ;
     ssbData[8 ] = 0.0f;
-    ssbData[9 ] = 1.0f;
-    ssbData[10] = 1.0f;
+    ssbData[9 ] = 0.0f;
+
+    ssbData[10] = config.graphics.resolutionX;
     ssbData[11] = 0.0f;
+    ssbData[12] = z   ;
+    ssbData[13] = 1.0f;
+    ssbData[14] = 1.0f;
+
+    ssbData[15] = config.graphics.resolutionX;
+    ssbData[16] = config.graphics.resolutionY;
+    ssbData[17] = z   ;
+    ssbData[18] = 1.0f;
+    ssbData[19] = 0.0f;
 
     iData[0] = 0;
     iData[1] = 3;
@@ -223,11 +237,25 @@ void RendererState::finishRender() {
     iData[4] = 2;
     iData[5] = 3;
 
+    bgfx::setState(
+        BGFX_STATE_WRITE_RGB 
+      | BGFX_STATE_WRITE_A 
+      | BGFX_STATE_BLEND_FUNC(
+            BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA
+        )
+    );
+
     bgfx::setVertexBuffer(0, &screenSpaceBuffer);
     bgfx::setIndexBuffer(&indices);
-    bgfx::setTexture(0, uniforms.u_texture, screenTexture);
-
+    bgfx::setTexture(0, uniforms.u_texture, texture);
     bgfx::submit(RENDER_SCREEN_ID, screenProgram);
+}
+
+void RendererState::finishRender() {
+    bgfx::setScissor(0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
+    this->drawTextureToScreen(screenTexture, -1.0f);
+
+    drawGui();
 
     this->frame = bgfx::frame();
 }

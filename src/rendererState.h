@@ -55,6 +55,7 @@ struct RendererState {
         bgfx::UniformHandle u_texture;
     } uniforms;
 
+    void drawTextureToScreen(bgfx::TextureHandle texture, float const z);
     void finishRender();
     
     void setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth);
