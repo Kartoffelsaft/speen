@@ -12,6 +12,7 @@ static bgfx::UniformHandle g_AttribLocationTex = BGFX_INVALID_HANDLE;
 static bgfx::VertexLayout  g_VertexLayout;
 
 static char* clipboardContents = nullptr;
+static SDL_Cursor* cursors[ImGuiMouseCursor_COUNT];
 
 // Much of this is blatantly copied from https://github.com/pr0g/sdl-bgfx-imgui-starter
 
@@ -217,6 +218,18 @@ bool ImGui_ImplSDL2_ProcessEvent(SDL_Event const event) {
             io.MouseDown[2] = mButtons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
             io.MousePos = ImVec2((float)mx, (float)my);
 
+            if(io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) {
+                ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+                if(io.MouseDrawCursor || cursor == ImGuiMouseCursor_None) {
+                    SDL_ShowCursor(SDL_FALSE);
+                } else {
+                    SDL_SetCursor(
+                        cursors[cursor]?
+                        cursors[cursor] : cursors[ImGuiMouseCursor_Arrow]
+                    );
+                }
+            }
+
             return io.WantCaptureMouse;
         }
         case SDL_TEXTINPUT: {
@@ -271,13 +284,29 @@ void ImGui_ImplSDL2_Init() {
     io.KeyMap[ImGuiKey_Y          ] = SDL_SCANCODE_Y        ;
     io.KeyMap[ImGuiKey_Z          ] = SDL_SCANCODE_Z        ;
 
+    cursors[ImGuiMouseCursor_Arrow     ] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW   );
+    cursors[ImGuiMouseCursor_TextInput ] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM   );
+    cursors[ImGuiMouseCursor_ResizeAll ] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL );
+    cursors[ImGuiMouseCursor_ResizeNS  ] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS  );
+    cursors[ImGuiMouseCursor_ResizeEW  ] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE  );
+    cursors[ImGuiMouseCursor_ResizeNESW] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
+    cursors[ImGuiMouseCursor_ResizeNWSE] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+    cursors[ImGuiMouseCursor_Hand      ] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND    );
+    cursors[ImGuiMouseCursor_NotAllowed] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO      );
+
     io.SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
     io.GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
     io.ClipboardUserData  = nullptr;
 }
 
 void ImGui_ImplSDL2_Shutdown() {
+    if(clipboardContents) {
+        SDL_free(clipboardContents);
+    }
 
+    for(ImGuiMouseCursor cursor; cursor < ImGuiMouseCursor_COUNT; cursor++) {
+        SDL_FreeCursor(cursors[cursor]);
+    }
 }
 
 void ImGui_ImplSDL2_NewFrame(float const frameTime) {
