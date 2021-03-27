@@ -9,7 +9,7 @@
 
 static bgfx::TextureHandle g_FontTexture = BGFX_INVALID_HANDLE;
 static bgfx::UniformHandle g_AttribLocationTex = BGFX_INVALID_HANDLE;
-static bgfx::VertexLayout g_VertexLayout;
+static bgfx::VertexLayout  g_VertexLayout;
 
 static char* clipboardContents = nullptr;
 
@@ -19,7 +19,7 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) {
     // Avoid rendering when minimized, scale coordinates for retina displays
     // (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+    int fb_width  = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
     int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
     if (fb_width == 0 || fb_height == 0) {
         return;
@@ -53,7 +53,6 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) {
         caps->homogeneousDepth
     );
     bgfx::setViewTransform(RENDER_SCREEN_ID, NULL, ortho.data());
-    //bgfx::setViewRect(RENDER_SCREEN_ID, 0, 0, (uint16_t)fb_width, (uint16_t)fb_height);
 
     // Render command lists
     for (int n = 0; n < draw_data->CmdListsCount; n++) {
@@ -64,11 +63,10 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) {
         bgfx::TransientIndexBuffer tib;
 
         uint32_t numVertices = (uint32_t)cmd_list->VtxBuffer.size();
-        uint32_t numIndices = (uint32_t)cmd_list->IdxBuffer.size();
+        uint32_t numIndices  = (uint32_t)cmd_list->IdxBuffer.size();
 
-        if ((numVertices != bgfx::getAvailTransientVertexBuffer(
-                                numVertices, g_VertexLayout)) ||
-            (numIndices != bgfx::getAvailTransientIndexBuffer(numIndices))) {
+        if ((numVertices != bgfx::getAvailTransientVertexBuffer(numVertices, g_VertexLayout)) 
+        || ( numIndices  != bgfx::getAvailTransientIndexBuffer (numIndices))) {
             // not enough space in transient buffer, quit drawing the rest...
             break;
         }
@@ -78,13 +76,17 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) {
 
         ImDrawVert* verts = (ImDrawVert*)tvb.data;
         memcpy(
-            verts, cmd_list->VtxBuffer.begin(),
-            numVertices * sizeof(ImDrawVert));
+            verts, 
+            cmd_list->VtxBuffer.begin(),
+            numVertices * sizeof(ImDrawVert)
+        );
 
         ImDrawIdx* indices = (ImDrawIdx*)tib.data;
         memcpy(
-            indices, cmd_list->IdxBuffer.begin(),
-            numIndices * sizeof(ImDrawIdx));
+            indices, 
+            cmd_list->IdxBuffer.begin(),
+            numIndices * sizeof(ImDrawIdx)
+        );
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++) {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -95,12 +97,16 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) {
                 const uint16_t xx = (uint16_t)bx::max(pcmd->ClipRect.x, 0.0f);
                 const uint16_t yy = (uint16_t)bx::max(pcmd->ClipRect.y, 0.0f);
                 bgfx::setScissor(
-                    xx, yy, (uint16_t)bx::min(pcmd->ClipRect.z, 65535.0f) - xx,
-                    (uint16_t)bx::min(pcmd->ClipRect.w, 65535.0f) - yy);
+                    xx, 
+                    yy, 
+                    (uint16_t)bx::min(pcmd->ClipRect.z, 65535.0f) - xx,
+                    (uint16_t)bx::min(pcmd->ClipRect.w, 65535.0f) - yy
+                );
 
                 bgfx::setState(state);
                 bgfx::TextureHandle texture = {
-                    (uint16_t)((intptr_t)pcmd->TextureId & 0xffff)};
+                    (uint16_t)((intptr_t)pcmd->TextureId & 0xffff)
+                };
                 bgfx::setTexture(0, g_AttribLocationTex, texture);
                 bgfx::setVertexBuffer(0, &tvb, 0, numVertices);
                 bgfx::setIndexBuffer(&tib, idx_buffer_offset, pcmd->ElemCount);
@@ -121,8 +127,14 @@ bool ImGui_Implbgfx_CreateFontsTexture() {
 
     // Upload texture to graphics system
     g_FontTexture = bgfx::createTexture2D(
-        (uint16_t)width, (uint16_t)height, false, 1, bgfx::TextureFormat::BGRA8,
-        0, bgfx::copy(pixels, width * height * 4));
+        (uint16_t)width, 
+        (uint16_t)height, 
+        false, 
+        1, 
+        bgfx::TextureFormat::BGRA8,
+        0, 
+        bgfx::copy(pixels, width * height * 4)
+    );
 
     // Store our identifier
     io.Fonts->TexID = (void*)(intptr_t)g_FontTexture.idx;
@@ -134,13 +146,15 @@ bool ImGui_Implbgfx_CreateDeviceObjects() {
     bgfx::RendererType::Enum type = bgfx::getRendererType();
 
     g_VertexLayout.begin()
-        .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+        .add(bgfx::Attrib::Position , 2, bgfx::AttribType::Float)
         .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-        .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+        .add(bgfx::Attrib::Color0   , 4, bgfx::AttribType::Uint8, true)
         .end();
 
-    g_AttribLocationTex =
-        bgfx::createUniform("g_AttribLocationTex", bgfx::UniformType::Sampler);
+    g_AttribLocationTex = bgfx::createUniform(
+        "g_AttribLocationTex", 
+        bgfx::UniformType::Sampler
+    );
 
     ImGui_Implbgfx_CreateFontsTexture();
 
@@ -213,10 +227,11 @@ bool ImGui_ImplSDL2_ProcessEvent(SDL_Event const event) {
         case SDL_KEYUP: {
             auto key = event.key.keysym.scancode;
             io.KeysDown[key] = event.type == SDL_KEYDOWN;
+
             auto mods = SDL_GetModState();
             io.KeyShift = mods & KMOD_SHIFT;
-            io.KeyCtrl = mods & KMOD_CTRL;
-            io.KeyAlt = mods & KMOD_ALT;
+            io.KeyCtrl  = mods & KMOD_CTRL;
+            io.KeyAlt   = mods & KMOD_ALT;
 
             return io.WantCaptureKeyboard;
         }
@@ -233,28 +248,28 @@ void ImGui_ImplSDL2_Init() {
         config.graphics.resolutionY
     );
 
-    io.KeyMap[ImGuiKey_Tab] = SDL_SCANCODE_TAB;
-    io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
-    io.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
-    io.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
-    io.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
-    io.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
-    io.KeyMap[ImGuiKey_Insert] = SDL_SCANCODE_INSERT;
-    io.KeyMap[ImGuiKey_Delete] = SDL_SCANCODE_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = SDL_SCANCODE_BACKSPACE;
-    io.KeyMap[ImGuiKey_Space] = SDL_SCANCODE_SPACE;
-    io.KeyMap[ImGuiKey_Enter] = SDL_SCANCODE_RETURN;
-    io.KeyMap[ImGuiKey_Escape] = SDL_SCANCODE_ESCAPE;
-    io.KeyMap[ImGuiKey_KeyPadEnter] = SDL_SCANCODE_KP_ENTER;
-    io.KeyMap[ImGuiKey_A] = SDL_SCANCODE_A;
-    io.KeyMap[ImGuiKey_C] = SDL_SCANCODE_C;
-    io.KeyMap[ImGuiKey_V] = SDL_SCANCODE_V;
-    io.KeyMap[ImGuiKey_X] = SDL_SCANCODE_X;
-    io.KeyMap[ImGuiKey_Y] = SDL_SCANCODE_Y;
-    io.KeyMap[ImGuiKey_Z] = SDL_SCANCODE_Z;
+    io.KeyMap[ImGuiKey_Tab        ] = SDL_SCANCODE_TAB      ;
+    io.KeyMap[ImGuiKey_LeftArrow  ] = SDL_SCANCODE_LEFT     ;
+    io.KeyMap[ImGuiKey_RightArrow ] = SDL_SCANCODE_RIGHT    ;
+    io.KeyMap[ImGuiKey_UpArrow    ] = SDL_SCANCODE_UP       ;
+    io.KeyMap[ImGuiKey_DownArrow  ] = SDL_SCANCODE_DOWN     ;
+    io.KeyMap[ImGuiKey_PageUp     ] = SDL_SCANCODE_PAGEUP   ;
+    io.KeyMap[ImGuiKey_PageDown   ] = SDL_SCANCODE_PAGEDOWN ;
+    io.KeyMap[ImGuiKey_Home       ] = SDL_SCANCODE_HOME     ;
+    io.KeyMap[ImGuiKey_End        ] = SDL_SCANCODE_END      ;
+    io.KeyMap[ImGuiKey_Insert     ] = SDL_SCANCODE_INSERT   ;
+    io.KeyMap[ImGuiKey_Delete     ] = SDL_SCANCODE_DELETE   ;
+    io.KeyMap[ImGuiKey_Backspace  ] = SDL_SCANCODE_BACKSPACE;
+    io.KeyMap[ImGuiKey_Space      ] = SDL_SCANCODE_SPACE    ;
+    io.KeyMap[ImGuiKey_Enter      ] = SDL_SCANCODE_RETURN   ;
+    io.KeyMap[ImGuiKey_Escape     ] = SDL_SCANCODE_ESCAPE   ;
+    io.KeyMap[ImGuiKey_KeyPadEnter] = SDL_SCANCODE_KP_ENTER ;
+    io.KeyMap[ImGuiKey_A          ] = SDL_SCANCODE_A        ;
+    io.KeyMap[ImGuiKey_C          ] = SDL_SCANCODE_C        ;
+    io.KeyMap[ImGuiKey_V          ] = SDL_SCANCODE_V        ;
+    io.KeyMap[ImGuiKey_X          ] = SDL_SCANCODE_X        ;
+    io.KeyMap[ImGuiKey_Y          ] = SDL_SCANCODE_Y        ;
+    io.KeyMap[ImGuiKey_Z          ] = SDL_SCANCODE_Z        ;
 
     io.SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
     io.GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
