@@ -54,9 +54,6 @@ int main() {
 
     createPlayer();
 
-    auto frameStart = std::chrono::high_resolution_clock::now();
-    float lastFrameTimeElapsed = 0.f;
-
     while(!rendererState.windowShouldClose) {
         inputState.updateInputs();
         for(auto const & entity: entitySystem.filterByComponent<InputComponent>()) {
@@ -65,11 +62,11 @@ int main() {
         }
 
         for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
-            entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, lastFrameTimeElapsed);
+            entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
         }
 
         for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
-            entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, lastFrameTimeElapsed);
+            entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, rendererState.lastFrameTimeElapsed);
         }
 
         bgfx::setUniform(
@@ -96,11 +93,6 @@ int main() {
         }
 
         rendererState.finishRender();
-
-        auto frameEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<float> timeElapsed = frameEnd - frameStart;
-        lastFrameTimeElapsed = timeElapsed.count();
-        frameStart = frameEnd;
     }
 
     terminateGui();

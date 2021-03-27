@@ -255,9 +255,14 @@ void RendererState::finishRender() {
     bgfx::setScissor(0, 0, config.graphics.resolutionX, config.graphics.resolutionY);
     this->drawTextureToScreen(screenTexture, -1.0f);
 
-    drawGui();
+    drawGui(lastFrameTimeElapsed);
 
     this->frame = bgfx::frame();
+
+    auto frameEnd = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> timeElapsed = frameEnd - frameStart;
+    lastFrameTimeElapsed = timeElapsed.count();
+    frameStart = frameEnd;
 }
 
 void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, float depth){

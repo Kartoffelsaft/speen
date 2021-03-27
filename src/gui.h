@@ -5,6 +5,6 @@
 void initGui();
 
 bool processEventGui(SDL_Event const event);
-void drawGui();
+void drawGui(float const frameTime);
 
 void terminateGui();

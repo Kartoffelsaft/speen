@@ -250,8 +250,10 @@ void ImGui_ImplSDL2_Shutdown() {
 
 }
 
-void ImGui_ImplSDL2_NewFrame() {
-    // TODO: Somehow set io.deltatime here (the source of the datum is in main())
+void ImGui_ImplSDL2_NewFrame(float const frameTime) {
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.DeltaTime = frameTime;
 }
 
 void initGui() {
@@ -265,9 +267,9 @@ bool processEventGui(SDL_Event const event) {
     return ImGui_ImplSDL2_ProcessEvent(event);
 }
 
-void drawGui() {
+void drawGui(float const frameTime) {
     ImGui_Implbgfx_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplSDL2_NewFrame(frameTime);
 
     ImGui::NewFrame();
     ImGui::ShowDemoWindow();

@@ -4,6 +4,7 @@
 #include <bx/math.h> // NOLINT(modernize-deprecated-headers)
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
+#include <chrono>
 
 #include "model.h"
 #include "mathUtils.h"
@@ -22,6 +23,9 @@ struct RendererState {
     static RendererState init();
 
     uint64_t frame = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> frameStart 
+        = std::chrono::high_resolution_clock::now();
+    float lastFrameTimeElapsed = 0.f;
 
     SDL_Window* window;
     ModelLoader modelLoader;
