@@ -10,6 +10,8 @@
 
 #define PLAYER_MODEL "mokey.glb"
 
+static EntityId playerId;
+
 void playerOnInput(InputState const & inputs, EntityId const id) {
     auto& obj = entitySystem.getComponentData<PhysicsComponent>(id);
 
@@ -66,11 +68,11 @@ InputComponent playerComponentInput() {
 }
 
 EntityId createPlayer() { 
-    auto player = entitySystem.newEntity();
+    playerId = entitySystem.newEntity();
 
-    entitySystem.addComponent(player, playerComponentModel());
-    entitySystem.addComponent(player, playerComponentPhysics());
-    entitySystem.addComponent(player, playerComponentInput());
+    entitySystem.addComponent(playerId, playerComponentModel());
+    entitySystem.addComponent(playerId, playerComponentPhysics());
+    entitySystem.addComponent(playerId, playerComponentInput());
 
-    return player;
+    return playerId;
 }
