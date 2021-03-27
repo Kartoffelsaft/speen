@@ -11,6 +11,8 @@ static bgfx::TextureHandle g_FontTexture = BGFX_INVALID_HANDLE;
 static bgfx::UniformHandle g_AttribLocationTex = BGFX_INVALID_HANDLE;
 static bgfx::VertexLayout g_VertexLayout;
 
+static char* clipboardContents = nullptr;
+
 // Much of this is blatantly copied from https://github.com/pr0g/sdl-bgfx-imgui-starter
 
 void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) {
@@ -170,8 +172,17 @@ void ImGui_Implbgfx_NewFrame()
     }
 }
 
-// TODO: implement clipboard
 // TODO: implement mouse cursors (like the I bar when you mouse ove editable text)
+
+char const * ImGui_ImplSDL2_GetClipboardText(void* _) {
+    if(clipboardContents) SDL_free(clipboardContents);
+    clipboardContents = SDL_GetClipboardText();
+    return clipboardContents;
+}
+
+void ImGui_ImplSDL2_SetClipboardText(void* _, char const * text) {
+    SDL_SetClipboardText(text);
+}
 
 bool ImGui_ImplSDL2_ProcessEvent(SDL_Event const event) {
     ImGuiIO& io = ImGui::GetIO();
@@ -244,6 +255,10 @@ void ImGui_ImplSDL2_Init() {
     io.KeyMap[ImGuiKey_X] = SDL_SCANCODE_X;
     io.KeyMap[ImGuiKey_Y] = SDL_SCANCODE_Y;
     io.KeyMap[ImGuiKey_Z] = SDL_SCANCODE_Z;
+
+    io.SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
+    io.GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
+    io.ClipboardUserData  = nullptr;
 }
 
 void ImGui_ImplSDL2_Shutdown() {
