@@ -3,6 +3,7 @@
 #include "entitySystem.h"
 #include "input.h"
 #include "physics.h"
+#include "gui.h"
 #include "config.h"
 #include "chunk.h"
 #include "rendererState.h"
@@ -51,6 +52,10 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
     world.updateModel(chunkX, chunkZ, config.graphics.renderDistance);
 }
 
+void playerRunGui(EntityId const id) {
+    ImGui::Text("Testing (playerId: %i)", playerId);
+}
+
 ModelInstance playerComponentModel() {
     return ModelInstance::fromModelPtr(LOAD_MODEL(PLAYER_MODEL));
 }
@@ -67,12 +72,19 @@ InputComponent playerComponentInput() {
     };
 }
 
+GuiComponent playerComponentGui() {
+    return GuiComponent{
+        .runGui = playerRunGui,
+    };
+}
+
 EntityId createPlayer() { 
     playerId = entitySystem.newEntity();
 
     entitySystem.addComponent(playerId, playerComponentModel());
     entitySystem.addComponent(playerId, playerComponentPhysics());
     entitySystem.addComponent(playerId, playerComponentInput());
+    entitySystem.addComponent(playerId, playerComponentGui());
 
     return playerId;
 }

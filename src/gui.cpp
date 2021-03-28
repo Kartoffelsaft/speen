@@ -4,7 +4,7 @@
 
 #include "gui.h"
 #include "guiImpl.h"
-
+#include "entitySystem.h"
 
 void initGui() {
     ImGui::CreateContext();
@@ -22,7 +22,14 @@ void drawGui(float const frameTime) {
     ImGui_ImplSDL2_NewFrame(frameTime);
 
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+
+    for(auto const & id: entitySystem.filterByComponent<GuiComponent>()) {
+        ImGui::Begin("Test");
+        entitySystem.getComponentData<GuiComponent>(id).runGui(id);
+        ImGui::End();
+    }
+
+    // ImGui::ShowDemoWindow();
     ImGui::Render();
     ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
 }

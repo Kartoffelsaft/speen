@@ -27,6 +27,7 @@ int main() {
     entitySystem.initComponent<InputComponent>();
     entitySystem.initComponent<OnFrameComponent>();
     entitySystem.initComponent<PhysicsComponent>();
+    entitySystem.initComponent<GuiComponent>();
 
     InputState inputState;
 

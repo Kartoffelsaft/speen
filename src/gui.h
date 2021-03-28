@@ -1,6 +1,13 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <imgui.h>
+
+#include "entitySystem.h"
+
+struct GuiComponent {
+    void (*runGui)(EntityId const id);
+};
 
 void initGui();
 
