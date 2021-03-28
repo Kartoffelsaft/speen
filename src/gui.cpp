@@ -27,7 +27,7 @@ void drawGui(float const frameTime) {
         entitySystem.getComponentData<GuiComponent>(id).runGui(id);
     }
 
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
     ImGui::Render();
     ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
 }

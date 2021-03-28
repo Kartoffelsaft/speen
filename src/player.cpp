@@ -13,6 +13,12 @@
 
 static EntityId playerId;
 
+struct InventoryItem {
+    int data;
+};
+
+static std::vector<InventoryItem> inventory;
+
 void playerOnInput(InputState const & inputs, EntityId const id) {
     auto& obj = entitySystem.getComponentData<PhysicsComponent>(id);
 
@@ -34,6 +40,10 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
         } if(config.keybindings.down.contains(inp)) {
             obj.velY = -8.f;
         }
+
+        if(config.keybindings.place.contains(inp)) {
+            inventory.push_back(InventoryItem{.data = 4,});
+        }
     }
 
     int chunkX = ((int)obj.posX) / 16;
@@ -54,7 +64,18 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
 
 void playerRunGuiInventory() {
     ImGui::Begin("Inventory");
-    ImGui::Text("Testing (playerId: %i)", playerId);
+        ImGui::BeginTable("Inventory Table", 1);
+
+        ImGui::TableSetupColumn("Data");
+        for(int i = 0; i < inventory.size(); i++) {
+            ImGui::PushID(i);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%08d", inventory.at(i));
+            ImGui::PopID();
+        }
+
+        ImGui::EndTable();
     ImGui::End();
 }
 
