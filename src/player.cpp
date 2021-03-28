@@ -52,8 +52,14 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
     world.updateModel(chunkX, chunkZ, config.graphics.renderDistance);
 }
 
-void playerRunGui(EntityId const id) {
+void playerRunGuiInventory() {
+    ImGui::Begin("Inventory");
     ImGui::Text("Testing (playerId: %i)", playerId);
+    ImGui::End();
+}
+
+void playerRunGui(EntityId const id) {
+    playerRunGuiInventory();
 }
 
 ModelInstance playerComponentModel() {

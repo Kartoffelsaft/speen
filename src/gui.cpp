@@ -24,9 +24,7 @@ void drawGui(float const frameTime) {
     ImGui::NewFrame();
 
     for(auto const & id: entitySystem.filterByComponent<GuiComponent>()) {
-        ImGui::Begin("Test");
         entitySystem.getComponentData<GuiComponent>(id).runGui(id);
-        ImGui::End();
     }
 
     // ImGui::ShowDemoWindow();
