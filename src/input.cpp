@@ -65,11 +65,11 @@ bx::Vec3 getScreenWorldPos(float x, float y) {
     Mat4 projInv;
     bx::mtxInverse(projInv.data(), rendererState.cameraProjectionMtx.data());
 
-    auto xy = bx::mul({x * 2 - 1, -y * 2 + 1, 0}, projInv.data());
+    auto xy = projInv * Vec3{x * 2 - 1, -y * 2 + 1, 0};
     // holy shit it took me like at least 10 hours to figure out this is the equasion I need
     // yet I still have no idea how it works
     // touch with peril
     auto z = 0.5 * (FAR_CLIP + NEAR_CLIP) * (2 * NEAR_CLIP) / (FAR_CLIP - depth * (FAR_CLIP - NEAR_CLIP));
     
-    return bx::mul({xy.x * z, xy.y * z, z}, viewInv.data());
+    return viewInv * Vec3{xy.x * z, xy.y * z, z};
 }

@@ -22,32 +22,32 @@ static std::vector<InventoryItem> inventory;
 void playerOnInput(InputState const & inputs, EntityId const id) {
     auto& obj = entitySystem.getComponentData<PhysicsComponent>(id);
 
-    obj.velX = 0.f;
-    obj.velY = 0.f;
-    obj.velZ = 0.f;
+    obj.velocity.x = 0.f;
+    obj.velocity.y = 0.f;
+    obj.velocity.z = 0.f;
 
     for(auto inp: inputs.inputsHeld) {
         if(config.keybindings.forward.contains(inp)) {
-            obj.velX = -8.f;
+            obj.velocity.x = -8.f;
         } if(config.keybindings.back.contains(inp)) {
-            obj.velX = +8.f;
+            obj.velocity.x = +8.f;
         } if(config.keybindings.left.contains(inp)) {
-            obj.velZ = -8.f;
+            obj.velocity.z = -8.f;
         } if(config.keybindings.right.contains(inp)) {
-            obj.velZ = +8.f;
+            obj.velocity.z = +8.f;
         } if(config.keybindings.up.contains(inp)) {
-            obj.velY = +8.f;
+            obj.velocity.y = +8.f;
         } if(config.keybindings.down.contains(inp)) {
-            obj.velY = -8.f;
+            obj.velocity.y = -8.f;
         }
     }
 
-    int chunkX = ((int)obj.posX) / 16;
-    int chunkZ = ((int)obj.posZ) / 16;
+    int chunkX = ((int)obj.position.x) / 16;
+    int chunkZ = ((int)obj.position.z) / 16;
 
     rendererState.setCameraOrientation(
-        {obj.posX + 5, obj.posY + 7, obj.posZ + 5},
-        {obj.posX, obj.posY, obj.posZ}
+        obj.position + Vec3{5.f, 7.f, 5.f},
+        obj.position
     );
     rendererState.setLightOrientation(
         {(float)chunkX * 16 - 48, 19, (float)chunkZ * 16 + 10},
@@ -92,7 +92,7 @@ PhysicsComponent playerComponentPhysics() {
     auto ret = PhysicsComponent{};
     ret.grounded = true;
     ret.collidable.emplace(Collidable{
-        .collisionRange = 2.f,
+        .collisionRange = 1.f,
         .onCollision = playerOnCollision,
     });
     return ret;

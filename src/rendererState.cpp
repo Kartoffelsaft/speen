@@ -283,7 +283,7 @@ void RendererState::setLightOrientation(bx::Vec3 from, bx::Vec3 to, float size, 
     );
 
     bgfx::setViewTransform(RENDER_SHADOW_ID, lightView.data(), lightProjection.data());
-    bx::mtxMul(this->lightMapMtx.data(), lightView.data(), lightProjection.data());
+    lightMapMtx = lightProjection * lightView;
     bgfx::setUniform(this->uniforms.u_lightDirMtx, lightView.data());
 }
 
@@ -301,6 +301,6 @@ void RendererState::setCameraOrientation(bx::Vec3 from, bx::Vec3 to) {
 
     bgfx::setViewTransform(RENDER_SCENE_ID, cameraViewMtx.data(), cameraProjectionMtx.data());
     cameraPos = from;
-    bx::mtxMul(cameraMtx.data(), cameraViewMtx.data(), cameraProjectionMtx.data());
+    cameraMtx = cameraProjectionMtx * cameraViewMtx;
 }
 

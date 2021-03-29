@@ -7,11 +7,61 @@
 #include <algorithm>
 #include <cmath>
 #include <cfenv>
+#include <bx/math.h>
 
 using Mat4 = std::array<float, 16>;
+
+struct Vec3 {
+    float x;
+    float y;
+    float z;
+
+    Vec3() = default;
+    Vec3(float nx, float ny, float nz): x{nx}, y{ny}, z{nz} {}
+    Vec3(bx::Vec3 const & bv): x{bv.x}, y{bv.y}, z{bv.z} {}
+
+    using bxv3 = bx::Vec3;
+    operator bxv3() const { return {x, y, z}; }
+    Vec3 operator +(Vec3 const & other) const {
+        return {this->x + other.x, this->y + other.y, this->z + other.z};
+    }
+    Vec3& operator +=(Vec3 const & other) {
+        *this = *this + other;
+        return *this;
+    }
+    Vec3 operator -() const {
+        return {-x, -y, -z};
+    }
+    Vec3 operator -(Vec3 const & other) const {
+        return (*this) + (-other);
+    }
+    Vec3& operator -=(Vec3 const & other) {
+        *this = *this - other;
+        return *this;
+    }
+    Vec3 operator *(float const & m) const {
+        return {x * m, y * m, z * m};
+    }
+    Vec3 operator /(float const & m) const {
+        return {x / m, y / m, z / m};
+    }
+
+    float length() const;
+    float lengthSquared() const;
+};
+
+inline Vec3 operator *(Mat4 const & mtx, Vec3 const & vec) {
+    return bx::mul(vec, mtx.data());
+}
+
+inline Mat4 operator *(Mat4 const & mtxA, Mat4 const & mtxB) {
+    Mat4 ret;
+    bx::mtxMul(ret.data(), mtxB.data(), mtxA.data());
+    return ret;
+}
     
 /**
- * @brief returns an integer and a fractional component of the input number, towards -inf
+ * @brief returns an integer and a fractional component of the input number, towards -inf.
  * 
  * @param x 
  * @return std::tuple<int, float> A tuple of the integer and fractional component
@@ -19,7 +69,7 @@ using Mat4 = std::array<float, 16>;
 std::tuple<int, float> floorFract(float const x);
 
 /**
- * @brief Interpolates between the corners of a square
+ * @brief Interpolates between the corners of a square.
  * 
  * @param s00 top left
  * @param s01 bottom left
@@ -39,8 +89,8 @@ float interpolate(
 );
 
 /**
- * @brief Applies a convolutional kernel on a square array
- * Final image will be shrunk to deal with edges
+ * @brief Applies a convolutional kernel on a square array.
+ * Final image will be shrunk to deal with edges.
  * 
  * see:
  * https://en.wikipedia.org/wiki/Kernel_(image_processing)

@@ -1,5 +1,7 @@
 #pragma once
+
 #include "entitySystem.h"
+#include "mathUtils.h"
 
 struct Collidable {
     float collisionRange;
@@ -7,12 +9,8 @@ struct Collidable {
 };
 
 struct PhysicsComponent {
-    float posX = 0.f;
-    float posY = 0.f;
-    float posZ = 0.f;
-    float velX = 0.f;
-    float velY = 0.f;
-    float velZ = 0.f;
+    Vec3 position = {0.f, 0.f, 0.f};
+    Vec3 velocity = {0.f, 0.f, 0.f};
 
     bool grounded = false;
 

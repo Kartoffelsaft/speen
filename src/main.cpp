@@ -46,11 +46,13 @@ int main() {
                     auto newPlacement = entitySystem.newEntity();
                     entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
                     entitySystem.addComponent(newPlacement, PhysicsComponent{
-                        .posX = donutOrientation[12],
-                        .posY = donutOrientation[13],
-                        .posZ = donutOrientation[14],
+                        .position = Vec3{
+                            donutOrientation[12],
+                            donutOrientation[13],
+                            donutOrientation[14],
+                        },
                         .collidable = Collidable{
-                            .collisionRange = 1,
+                            .collisionRange = 0.5,
                         }
                     });
                 }
@@ -86,7 +88,7 @@ int main() {
 
         bgfx::setViewClear(RENDER_SHADOW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff);
         bgfx::setViewClear(RENDER_SCENE_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x8899ffff);
-        bgfx::setViewClear(RENDER_SCREEN_ID,  BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x8899ffff);
+        bgfx::setViewClear(RENDER_SCREEN_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x8899ffff);
 
         {
             std::vector<bgfx::ViewId> viewOrder = {
