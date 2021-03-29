@@ -40,10 +40,6 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
         } if(config.keybindings.down.contains(inp)) {
             obj.velY = -8.f;
         }
-
-        if(config.keybindings.place.contains(inp)) {
-            inventory.push_back(InventoryItem{.data = 4,});
-        }
     }
 
     int chunkX = ((int)obj.posX) / 16;
@@ -79,6 +75,11 @@ void playerRunGuiInventory() {
     ImGui::End();
 }
 
+void playerOnCollision(EntityId const id, EntityId const otherId) {
+    entitySystem.removeEntity(otherId);
+    inventory.push_back(InventoryItem{.data = otherId,});
+}
+
 void playerRunGui(EntityId const id) {
     playerRunGuiInventory();
 }
@@ -90,6 +91,10 @@ ModelInstance playerComponentModel() {
 PhysicsComponent playerComponentPhysics() { 
     auto ret = PhysicsComponent{};
     ret.grounded = true;
+    ret.collidable.emplace(Collidable{
+        .collisionRange = 2.f,
+        .onCollision = playerOnCollision,
+    });
     return ret;
 }
 

@@ -8,6 +8,7 @@ EntityId EntitySystem::newEntity() {
 
 void EntitySystem::removeEntity(EntityId const id) {
     entities.erase(id);
+    invalidEntities.insert(id);
 
     for(auto& [_, component]: components) if(component->containsEntity(id)) {
         component->removeEntity(id);

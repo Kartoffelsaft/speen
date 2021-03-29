@@ -45,7 +45,14 @@ int main() {
                 for(auto i: inputs.inputsJustPressed) if(config.keybindings.place.contains(i)) {
                     auto newPlacement = entitySystem.newEntity();
                     entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
-                    entitySystem.getComponentData<ModelInstance>(newPlacement).orientation = donutOrientation;
+                    entitySystem.addComponent(newPlacement, PhysicsComponent{
+                        .posX = donutOrientation[12],
+                        .posY = donutOrientation[13],
+                        .posZ = donutOrientation[14],
+                        .collidable = Collidable{
+                            .collisionRange = 1,
+                        }
+                    });
                 }
             }
         });
@@ -63,11 +70,13 @@ int main() {
         }
 
         for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
-            entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
+            if(!entitySystem.invalidEntities.contains(entity))
+                entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
         }
 
         for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
-            entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, rendererState.lastFrameTimeElapsed);
+            if(!entitySystem.invalidEntities.contains(entity))
+                entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, rendererState.lastFrameTimeElapsed);
         }
 
         bgfx::setUniform(

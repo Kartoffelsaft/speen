@@ -15,4 +15,17 @@ void PhysicsComponent::step(EntityId const id, float const delta) {
         model.orientation[13] = posY;
         model.orientation[14] = posZ;
     }
+
+    if(collidable && collidable->onCollision) {
+        for(auto const & otherId: entitySystem.filterByComponent<PhysicsComponent>()) if(otherId != id) {
+            auto& other = entitySystem.getComponentData<PhysicsComponent>(otherId);
+            if(other.collidable
+            && std::abs(other.posX - this->posX) < other.collidable->collisionRange + this->collidable->collisionRange
+            && std::abs(other.posY - this->posY) < other.collidable->collisionRange + this->collidable->collisionRange
+            && std::abs(other.posZ - this->posZ) < other.collidable->collisionRange + this->collidable->collisionRange
+            ) {
+                this->collidable->onCollision(id, otherId);
+            }
+        }
+    }
 }

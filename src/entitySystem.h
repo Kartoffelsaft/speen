@@ -27,6 +27,8 @@ struct ComponentType: std::unordered_map<EntityId, T>, Component {
 struct EntitySystem {
     std::unordered_set<EntityId> entities;
 
+    std::unordered_set<EntityId> invalidEntities;
+
     EntityId newEntity();
     void removeEntity(EntityId const id);
 
