@@ -80,7 +80,11 @@ void playerRunGuiInventory() {
                 if(ImGuiPayload const * p = ImGui::AcceptDragDropPayload("Inventory Index")) {
                     auto const si = *(int const *)p->Data;
 
-                    std::swap(inventory.at(si), inventory.at(i));
+                    if(si < i) {
+                        std::rotate(inventory.begin() + si, inventory.begin() + si + 1, inventory.begin() + i + 1);
+                    } else {
+                        std::rotate(inventory.begin() + i, inventory.begin() + si, inventory.begin() + si + 1);
+                    }
                 }
                 ImGui::EndDragDropTarget();
             }
