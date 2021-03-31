@@ -8,6 +8,10 @@ float Vec3::lengthSquared() const {
     return x * x + y * y + z * z;
 }
 
+Vec3 Vec3::normalized() const {
+    return (*this) / this->length();
+}
+
 std::tuple<int, float> floorFract(float const x) {
     float floor;
     float fract = modff(x, &floor);

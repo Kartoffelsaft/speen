@@ -7,11 +7,21 @@ using CollisionBitmask = uint8_t;
 
 struct Collidable {
     float collisionRange;
+    Vec3 colliderOffset = Vec3{0, 0, 0};
 
     // Before checking for collision (where A is checking for B), A.layer & B.layer || A.mask & B.layer
     // is checked before proceeding
-    CollisionBitmask layer = 0b0000'0001;
-    CollisionBitmask mask  = 0b0000'0001;
+    // layers as of now:
+    // 0b0000'0001: Enemies
+    // 0b0000'0010: Player
+    // 0b0000'0100: Enemy attacks
+    // 0b0000'1000: Player attacks
+    // 0b0001'0000: Unused
+    // 0b0010'0000: Unused
+    // 0b0100'0000: Unused
+    // 0b1000'0000: Unused
+    CollisionBitmask layer;
+    CollisionBitmask mask;
 
     void (*onCollision)(EntityId const id, EntityId const otherId) = nullptr;
 };

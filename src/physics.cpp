@@ -18,11 +18,11 @@ void PhysicsComponent::step(EntityId const id, float const delta) {
         for(auto const & otherId: entitySystem.filterByComponent<PhysicsComponent>()) if(otherId != id) {
             auto& other = entitySystem.getComponentData<PhysicsComponent>(otherId);
             if(other.collidable && (
-               this->collidable->layer & other.collidable->layer
-            || this->collidable->mask  & other.collidable->layer
+              (this->collidable->layer & other.collidable->layer)
+            ||(this->collidable->mask  & other.collidable->layer)
             )) {
                 auto collDst = other.collidable->collisionRange + this->collidable->collisionRange;
-                if((this->position - other.position).lengthSquared() < collDst * collDst) {
+                if(((this->position + this->collidable->colliderOffset) - (other.position + other.collidable->colliderOffset)).lengthSquared() < collDst * collDst) {
                     this->collidable->onCollision(id, otherId);
                 }
             }

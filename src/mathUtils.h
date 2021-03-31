@@ -48,6 +48,7 @@ struct Vec3 {
 
     float length() const;
     float lengthSquared() const;
+    Vec3 normalized() const;
 };
 
 inline Vec3 operator *(Mat4 const & mtx, Vec3 const & vec) {

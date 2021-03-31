@@ -27,6 +27,7 @@ struct Config {
         std::unordered_set<InputDatum> up;
         std::unordered_set<InputDatum> down;
         std::unordered_set<InputDatum> place;
+        std::unordered_set<InputDatum> attack;
     } keybindings;
 };
 

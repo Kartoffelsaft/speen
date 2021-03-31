@@ -52,8 +52,10 @@ int main() {
                             donutOrientation[14],
                         },
                         .collidable = Collidable{
-                            .collisionRange = 0.5,
-                            .mask = 0b0000'0011,
+                            .collisionRange = 1.0,
+                            .colliderOffset = {0, 1, 0},
+                            .layer = 0b0000'0001,
+                            .mask = 0b0000'0001,
                             .onCollision = [](EntityId const id, EntityId const otherId){printf("Collided with %i\n", otherId);},
                         }
                     });

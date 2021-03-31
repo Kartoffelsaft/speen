@@ -19,6 +19,35 @@ struct InventoryItem {
 
 static std::vector<InventoryItem> inventory;
 
+void shootAt(Vec3 const & at) {
+    auto const & playerPhysics = entitySystem.getComponentData<PhysicsComponent>(playerId);
+    auto from = playerPhysics.position + Vec3{0, 1, 0};
+    auto to = at + Vec3{0, 0.3, 0};
+    auto dir = (to - from).normalized();
+
+    auto bulletId = entitySystem.newEntity();
+
+    entitySystem.addComponent<ModelInstance>(bulletId, ModelInstance::fromModelPtr(LOAD_MODEL("bullet.glb")));
+
+    Mat4 tmp;
+    bx::mtxLookAt(tmp.data(), to, from);
+    bx::mtxInverse(entitySystem.getComponentData<ModelInstance>(bulletId).orientation.data(), tmp.data());
+
+    entitySystem.addComponent<PhysicsComponent>(bulletId, PhysicsComponent{
+        .position = from,
+        .velocity = dir * 10.f,
+        .collidable = Collidable{
+            .collisionRange = 0.1f,
+            .layer = 0b0000'1000,
+            .mask = 0b0000'1001,
+            .onCollision = [](EntityId const id, EntityId const otherId) {
+                entitySystem.removeEntity(id);
+                entitySystem.removeEntity(otherId);
+            }
+        }
+    });
+}
+
 void playerOnInput(InputState const & inputs, EntityId const id) {
     auto& obj = entitySystem.getComponentData<PhysicsComponent>(id);
 
@@ -39,6 +68,12 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
             obj.velocity.y = +8.f;
         } if(config.keybindings.down.contains(inp)) {
             obj.velocity.y = -8.f;
+        }
+    }
+
+    for(auto inp: inputs.inputsJustPressed) {
+        if(config.keybindings.attack.contains(inp)) {
+            shootAt(getScreenWorldPos(inputs.mousePosXNormal, inputs.mousePosYNormal));
         }
     }
 
