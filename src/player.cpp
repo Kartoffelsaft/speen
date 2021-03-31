@@ -65,9 +65,26 @@ void playerRunGuiInventory() {
         ImGui::TableSetupColumn("Data");
         for(int i = 0; i < inventory.size(); i++) {
             ImGui::PushID(i);
+
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+
             ImGui::Text("%08d", inventory.at(i));
+
+            if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+                ImGui::SetDragDropPayload("Inventory Index", &i, sizeof(i));
+                ImGui::EndDragDropSource();
+            }
+
+            if(ImGui::BeginDragDropTarget()) {
+                if(ImGuiPayload const * p = ImGui::AcceptDragDropPayload("Inventory Index")) {
+                    auto const si = *(int const *)p->Data;
+
+                    std::swap(inventory.at(si), inventory.at(i));
+                }
+                ImGui::EndDragDropTarget();
+            }
+
             ImGui::PopID();
         }
 
