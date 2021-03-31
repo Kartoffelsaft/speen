@@ -3,8 +3,16 @@
 #include "entitySystem.h"
 #include "mathUtils.h"
 
+using CollisionBitmask = uint8_t;
+
 struct Collidable {
     float collisionRange;
+
+    // Before checking for collision (where A is checking for B), A.layer & B.layer || A.mask & B.layer
+    // is checked before proceeding
+    CollisionBitmask layer = 0b0000'0001;
+    CollisionBitmask mask  = 0b0000'0001;
+
     void (*onCollision)(EntityId const id, EntityId const otherId) = nullptr;
 };
 

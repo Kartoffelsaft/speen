@@ -53,6 +53,8 @@ int main() {
                         },
                         .collidable = Collidable{
                             .collisionRange = 0.5,
+                            .mask = 0b0000'0011,
+                            .onCollision = [](EntityId const id, EntityId const otherId){printf("Collided with %i\n", otherId);},
                         }
                     });
                 }

@@ -114,6 +114,8 @@ PhysicsComponent playerComponentPhysics() {
     ret.grounded = true;
     ret.collidable.emplace(Collidable{
         .collisionRange = 1.f,
+        .layer = 0b0000'0010,
+        .mask  = 0b0000'0010,
         .onCollision = playerOnCollision,
     });
     return ret;
