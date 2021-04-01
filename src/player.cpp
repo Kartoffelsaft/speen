@@ -36,6 +36,8 @@ void shootAt(Vec3 const & at) {
     entitySystem.addComponent<PhysicsComponent>(bulletId, PhysicsComponent{
         .position = from,
         .velocity = dir * 10.f,
+        .accelleration = Vec3{0.f, -9.f, 0.f},
+        .type = PhysicsType::Bouncy,
         .collidable = Collidable{
             .collisionRange = 0.1f,
             .layer = 0b0000'1000,
@@ -147,7 +149,7 @@ ModelInstance playerComponentModel() {
 
 PhysicsComponent playerComponentPhysics() { 
     auto ret = PhysicsComponent{};
-    ret.grounded = true;
+    ret.type = PhysicsType::Grounded;
     ret.collidable.emplace(Collidable{
         .collisionRange = 1.f,
         .layer = 0b0000'0010,

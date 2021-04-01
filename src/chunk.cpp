@@ -306,4 +306,12 @@ float World::sampleHeight(float x, float z) {
     );
 }
 
+Vec3 World::getWorldNormal(float x, float z) {
+    auto o =  Vec3{x      , sampleHeight(x, z)      , z      };
+    auto pa = Vec3{x      , sampleHeight(x, z + 0.1), z + 0.1};
+    auto pb = Vec3{x + 0.1, sampleHeight(x + 0.1, z), z      };
+
+    return ((pa - o).cross(pb - o)).normalized();
+}
+
 #pragma clang diagnostic pop

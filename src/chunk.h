@@ -5,6 +5,7 @@
 
 #include "model.h"
 #include "entitySystem.h"
+#include "mathUtils.h"
 
 EntityId createWorldEntity();
 
@@ -45,6 +46,7 @@ struct World {
 
     Tile& getTile(int x, int z);
     float sampleHeight(float x, float z);
+    Vec3 getWorldNormal(float x, float z);
 
 private:
     int oldCx = -999;

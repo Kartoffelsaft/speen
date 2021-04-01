@@ -42,9 +42,20 @@ struct Vec3 {
     Vec3 operator *(float const & m) const {
         return {x * m, y * m, z * m};
     }
+    Vec3 operator *=(float const & m) {
+        *this = *this * m;
+        return *this;
+    }
     Vec3 operator /(float const & m) const {
         return {x / m, y / m, z / m};
     }
+    Vec3 operator /=(float const & m) {
+        *this = *this / m;
+        return *this;
+    }
+
+    float dot(Vec3 const & other) const;
+    Vec3 cross(Vec3 const & other) const;
 
     float length() const;
     float lengthSquared() const;

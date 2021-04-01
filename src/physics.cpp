@@ -3,9 +3,24 @@
 #include "chunk.h"
 
 void PhysicsComponent::step(EntityId const id, float const delta) {
+    velocity += accelleration * delta;
     position += velocity * delta;
 
-    if(grounded) position.y = world.sampleHeight(position.x, position.z);
+    switch (type) {
+        case PhysicsType::Floating:
+            break;
+        case PhysicsType::Grounded:
+            position.y = world.sampleHeight(position.x, position.z);
+            break;
+        case PhysicsType::Bouncy:
+            auto h = world.sampleHeight(position.x, position.z);
+            if(position.y < h) {
+                position.y = h;
+                auto norm = world.getWorldNormal(position.x, position.z);
+                velocity += norm * velocity.dot(norm) * -2.f;
+            }
+            break;
+    }
 
     if(entitySystem.entityHasComponent<ModelInstance>(id)) {
         auto& model = entitySystem.getComponentData<ModelInstance>(id);

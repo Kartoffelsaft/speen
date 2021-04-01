@@ -26,11 +26,18 @@ struct Collidable {
     void (*onCollision)(EntityId const id, EntityId const otherId) = nullptr;
 };
 
+enum PhysicsType {
+    Floating,
+    Grounded,
+    Bouncy,
+};
+
 struct PhysicsComponent {
     Vec3 position = {0.f, 0.f, 0.f};
     Vec3 velocity = {0.f, 0.f, 0.f};
+    Vec3 accelleration = {0.f, 0.f, 0.f};
 
-    bool grounded = false;
+    PhysicsType type = PhysicsType::Floating;
 
     std::optional<Collidable> collidable = std::nullopt;
 
