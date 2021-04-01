@@ -1,19 +1,30 @@
 .RECIPEPREFIX = >
 
+MAKE_MODE ?= debug
 EMBED_MODEL_FILES ?= true
 
 SRC_DIR := ./src
 BUILD_DIR := ./.build
 SRCS := $(shell find $(SRC_DIR) -name *.cpp)
-OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+OBJS := $(SRCS:%=$(BUILD_DIR)/$(MAKE_MODE)/%.o)
 DEPENDS := $(SRCS:%=$(BUILD_DIR)/%.d)
 LIB_OBJS := \
     bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so \
     $(BUILD_DIR)/dear-imgui/imgui.so
 
-CPPFLAGS := \
+ifeq ($(MAKE_MODE),debug)
+MODE_FLAGS := \
     -O0 \
-    -g \
+    -g
+else ifeq ($(MAKE_MODE),release)
+MODE_FLAGS := \
+    -O3 \
+    -g
+else
+@echo "WARNING: "$(MAKE_MODE)" is not a valid mode"
+endif
+
+CPPFLAGS := \
     -std=c++20
 
 LDFLAGS := \
@@ -84,16 +95,16 @@ $(MODEL_BUILD_DIR)/%.pmdl: $(MODEL_SRC_DIR)/%
 > ln $< $@
 
 compile_commands.json: $(SRCS)
-> echo 'compile_commands.json creation not set up yet'
+> @echo 'compile_commands.json creation not set up yet'
 
 a.out: $(OBJS)
-> $(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LIB_OBJS) $(INCLUDES)
+> $(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LIB_OBJS) $(INCLUDES) $(MODE_FLAGS)
 
 -include $(DEPENDS)
 
-$(BUILD_DIR)/%.cpp.o: %.cpp Makefile
+$(BUILD_DIR)/$(MAKE_MODE)/%.cpp.o: %.cpp Makefile
 > mkdir -p $(dir $@)
-> $(CXX) $(INCLUDES) $(DEFINES) $(CPPFLAGS) -MMD -MP -c $< -o $@
+> $(CXX) $(INCLUDES) $(DEFINES) $(CPPFLAGS) $(MODE_FLAGS) -MMD -MP -c $< -o $@
 
 clean:
 > rm -r .build cookedModels shaderBuild
