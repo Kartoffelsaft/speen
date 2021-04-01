@@ -94,7 +94,7 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
 }
 
 void playerRunGuiInventory() {
-    ImGui::Begin("Inventory");
+    if(ImGui::Begin("Inventory")) {
         ImGui::BeginTable("Inventory Table", 1);
 
         ImGui::TableSetupColumn("Data");
@@ -128,6 +128,7 @@ void playerRunGuiInventory() {
         }
 
         ImGui::EndTable();
+    }
     ImGui::End();
 }
 
