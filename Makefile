@@ -1,7 +1,7 @@
 .RECIPEPREFIX = >
 
 MAKE_MODE ?= debug
-EMBED_MODEL_FILES ?= true
+EMBED_MODEL_FILES ?= false
 
 SRC_DIR := ./src
 BUILD_DIR := ./.build

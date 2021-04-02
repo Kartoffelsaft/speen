@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <typeinfo>
 #include <ranges>
+#include <vector>
 
 using ComponentId = std::size_t;
 using EntityId = std::size_t;
@@ -61,7 +62,7 @@ struct EntitySystem {
     }
     
     template<typename T>
-    std::unordered_set<EntityId> filterByComponent(std::unordered_set<EntityId>&& ids) {
+    std::vector<EntityId> filterByComponent(std::vector<EntityId>&& ids) {
         auto const & component = getComponent<T>();
         for(auto e = ids.begin(); e != ids.end();) if(!component.containsEntity(*e)) {
             e = ids.erase(e);
@@ -70,12 +71,12 @@ struct EntitySystem {
     }
     
     template<typename T>
-    std::unordered_set<EntityId> filterByComponent() {
-        std::unordered_set<EntityId> ret;
+    std::vector<EntityId> filterByComponent() {
+        std::vector<EntityId> ret;
         ret.reserve(entities.size());
         auto const & component = getComponent<T>();
         for(auto const & e: entities) if(component.containsEntity(e)) {
-            ret.insert(e);
+            ret.emplace_back(e);
         }
         return ret;
     }

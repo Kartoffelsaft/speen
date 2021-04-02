@@ -12,3 +12,4 @@ settings.toml
 temp
 .vscode
 imgui.ini
+callgrind.*
