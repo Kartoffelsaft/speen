@@ -17,36 +17,36 @@ struct Vec3 {
     float z;
 
     Vec3() = default;
-    Vec3(float nx, float ny, float nz): x{nx}, y{ny}, z{nz} {}
-    Vec3(bx::Vec3 const & bv): x{bv.x}, y{bv.y}, z{bv.z} {}
+    constexpr Vec3(float nx, float ny, float nz): x{nx}, y{ny}, z{nz} {}
+    constexpr Vec3(bx::Vec3 const & bv): x{bv.x}, y{bv.y}, z{bv.z} {}
 
     using bxv3 = bx::Vec3;
     operator bxv3() const { return {x, y, z}; }
-    Vec3 operator +(Vec3 const & other) const {
+    constexpr Vec3 operator +(Vec3 const & other) const {
         return {this->x + other.x, this->y + other.y, this->z + other.z};
     }
     Vec3& operator +=(Vec3 const & other) {
         *this = *this + other;
         return *this;
     }
-    Vec3 operator -() const {
+    constexpr Vec3 operator -() const {
         return {-x, -y, -z};
     }
-    Vec3 operator -(Vec3 const & other) const {
+    constexpr Vec3 operator -(Vec3 const & other) const {
         return (*this) + (-other);
     }
     Vec3& operator -=(Vec3 const & other) {
         *this = *this - other;
         return *this;
     }
-    Vec3 operator *(float const & m) const {
+    constexpr Vec3 operator *(float const & m) const {
         return {x * m, y * m, z * m};
     }
     Vec3 operator *=(float const & m) {
         *this = *this * m;
         return *this;
     }
-    Vec3 operator /(float const & m) const {
+    constexpr Vec3 operator /(float const & m) const {
         return {x / m, y / m, z / m};
     }
     Vec3 operator /=(float const & m) {
@@ -54,12 +54,28 @@ struct Vec3 {
         return *this;
     }
 
-    float dot(Vec3 const & other) const;
-    Vec3 cross(Vec3 const & other) const;
+    constexpr float dot(Vec3 const & other) const {
+        return this->x * other.x 
+            + this->y * other.y 
+            + this->z * other.z;
+    }
+    constexpr Vec3 cross(Vec3 const & other) const {
+        return Vec3{
+            this->y * other.z - this->z * other.y,
+            this->z * other.x - this->x * other.z,
+            this->x * other.y - this->y * other.x
+        };
+    }
 
-    float length() const;
-    float lengthSquared() const;
-    Vec3 normalized() const;
+    constexpr float length() const {
+        return std::sqrt(this->lengthSquared());
+    }
+    constexpr float lengthSquared() const {
+        return x * x + y * y + z * z;
+    }
+    constexpr Vec3 normalized() const {
+        return (*this) / this->length();
+    }
 };
 
 inline Vec3 operator *(Mat4 const & mtx, Vec3 const & vec) {

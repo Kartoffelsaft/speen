@@ -35,25 +35,12 @@ struct {
 
 static std::vector<InventoryItem> inventory;
 
-void shootAt(Vec3 const & at) {
-    auto const & playerPhysics = entitySystem.getComponentData<PhysicsComponent>(playerId);
-    auto from = playerPhysics.position + Vec3{0, 1, 0};
-    auto to = at + Vec3{0, 0.3, 0};
-    auto dir = (to - from).normalized();
-
-    auto bulletId = entitySystem.newEntity();
-
-    entitySystem.addComponent<ModelInstance>(bulletId, ModelInstance::fromModelPtr(LOAD_MODEL("bullet.glb")));
-
-    Mat4 tmp;
-    bx::mtxLookAt(tmp.data(), to, from);
-    bx::mtxInverse(entitySystem.getComponentData<ModelInstance>(bulletId).orientation.data(), tmp.data());
-
-    entitySystem.addComponent<PhysicsComponent>(bulletId, PhysicsComponent{
+constexpr PhysicsComponent weaponProjectilePhysicsComponent(Weapon const weapon, Vec3 const & from, Vec3 const & to) {
+    auto defaultPhysics = PhysicsComponent{
         .position = from,
-        .velocity = dir * 10.f,
-        .accelleration = equipment.weapon == Weapon::BulletWeapon? Vec3{0.f, 0.f, 0.f} : Vec3{0.f, -9.f, 0.f},
-        .type = equipment.weapon == Weapon::BulletWeapon? PhysicsType::Floating : PhysicsType::Bouncy,
+        .velocity = (to - from).normalized() * 20.f,
+        .accelleration = Vec3{0.0f, 0.0f, 0.0f},
+        .type = PhysicsType::Floating,
         .collidable = Collidable{
             .collisionRange = 0.1f,
             .layer = 0b0000'1000,
@@ -66,7 +53,34 @@ void shootAt(Vec3 const & at) {
                 });
             }
         }
-    });
+    };
+
+    switch(weapon) {
+        case Weapon::BulletWeapon:
+            break;
+        case Weapon::GrenadeWeapon:
+            defaultPhysics.accelleration.y = -9.f;
+            defaultPhysics.type = PhysicsType::Bouncy;
+            break;
+    }
+
+    return defaultPhysics;
+}
+
+void shootAt(Vec3 const & at) {
+    auto const & playerPhysics = entitySystem.getComponentData<PhysicsComponent>(playerId);
+    auto from = playerPhysics.position + Vec3{0, 1, 0};
+    auto to = at + Vec3{0, 0.3, 0};
+
+    auto bulletId = entitySystem.newEntity();
+
+    entitySystem.addComponent<ModelInstance>(bulletId, ModelInstance::fromModelPtr(LOAD_MODEL("bullet.glb")));
+
+    Mat4 tmp;
+    bx::mtxLookAt(tmp.data(), to, from);
+    bx::mtxInverse(entitySystem.getComponentData<ModelInstance>(bulletId).orientation.data(), tmp.data());
+
+    entitySystem.addComponent<PhysicsComponent>(bulletId, weaponProjectilePhysicsComponent(equipment.weapon, from, to));
 }
 
 void playerOnInput(InputState const & inputs, EntityId const id) {
