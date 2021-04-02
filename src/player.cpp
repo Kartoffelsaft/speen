@@ -13,9 +13,25 @@
 
 static EntityId playerId;
 
-struct InventoryItem {
-    int data;
+enum Weapon {
+    BulletWeapon,
+    GrenadeWeapon,
 };
+
+char const * weaponAsString(Weapon const weapon) {
+    switch (weapon) {
+        case BulletWeapon : return "Gun";
+        case GrenadeWeapon: return "Grenade Launcher";
+    }
+}
+
+struct InventoryItem {
+    std::variant<Weapon> item;
+};
+
+struct {
+    Weapon weapon;
+} equipment;
 
 static std::vector<InventoryItem> inventory;
 
@@ -36,8 +52,8 @@ void shootAt(Vec3 const & at) {
     entitySystem.addComponent<PhysicsComponent>(bulletId, PhysicsComponent{
         .position = from,
         .velocity = dir * 10.f,
-        .accelleration = Vec3{0.f, -9.f, 0.f},
-        .type = PhysicsType::Bouncy,
+        .accelleration = equipment.weapon == Weapon::BulletWeapon? Vec3{0.f, 0.f, 0.f} : Vec3{0.f, -9.f, 0.f},
+        .type = equipment.weapon == Weapon::BulletWeapon? PhysicsType::Floating : PhysicsType::Bouncy,
         .collidable = Collidable{
             .collisionRange = 0.1f,
             .layer = 0b0000'1000,
@@ -45,6 +61,9 @@ void shootAt(Vec3 const & at) {
             .onCollision = [](EntityId const id, EntityId const otherId) {
                 entitySystem.removeEntity(id);
                 entitySystem.removeEntity(otherId);
+                inventory.emplace_back(InventoryItem{
+                    .item = Weapon::GrenadeWeapon,
+                });
             }
         }
     });
@@ -95,6 +114,8 @@ void playerOnInput(InputState const & inputs, EntityId const id) {
     world.updateModel(chunkX, chunkZ, config.graphics.renderDistance);
 }
 
+char const * const DRAG_DROP_INVENTORY_INDEX = "Inventory Index";
+
 void playerRunGuiInventory() {
     if(ImGui::Begin("Inventory")) {
         ImGui::BeginTable("Inventory Table", 1);
@@ -106,15 +127,15 @@ void playerRunGuiInventory() {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
 
-            ImGui::Text("%08d", inventory.at(i));
+            ImGui::Text("%s", weaponAsString(std::get<0>(inventory.at(i).item)));
 
             if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-                ImGui::SetDragDropPayload("Inventory Index", &i, sizeof(i));
+                ImGui::SetDragDropPayload(DRAG_DROP_INVENTORY_INDEX, &i, sizeof(i));
                 ImGui::EndDragDropSource();
             }
 
             if(ImGui::BeginDragDropTarget()) {
-                if(ImGuiPayload const * p = ImGui::AcceptDragDropPayload("Inventory Index")) {
+                if(ImGuiPayload const * p = ImGui::AcceptDragDropPayload(DRAG_DROP_INVENTORY_INDEX)) {
                     auto const si = *(int const *)p->Data;
 
                     if(si < i) {
@@ -134,13 +155,42 @@ void playerRunGuiInventory() {
     ImGui::End();
 }
 
+void playerRunGuiEquipment() {
+    if(ImGui::Begin("Equipment")) {
+        ImGui::PushID("Weapon");
+
+        ImGui::Button(
+            equipment.weapon == Weapon::BulletWeapon?
+            "Gun" :
+            "Grenade Launcher",
+            ImVec2(150, 50)
+        );
+
+        if(ImGui::BeginDragDropTarget()) {
+            if(ImGuiPayload const * p = ImGui::AcceptDragDropPayload(DRAG_DROP_INVENTORY_INDEX)) {
+                auto swapInv = InventoryItem{
+                    .item = equipment.weapon,
+                };
+                auto i = *(int const *)p->Data;
+                std::swap(swapInv, inventory.at(i));
+                equipment.weapon = std::get<Weapon>(swapInv.item);
+            }
+
+            ImGui::EndDragDropTarget();
+        }
+
+        ImGui::PopID();
+    }
+    ImGui::End();
+}
+
 void playerOnCollision(EntityId const id, EntityId const otherId) {
-    entitySystem.removeEntity(otherId);
-    inventory.push_back(InventoryItem{.data = otherId,});
+    // Nothing happens for now
 }
 
 void playerRunGui(EntityId const id) {
     playerRunGuiInventory();
+    playerRunGuiEquipment();
 }
 
 ModelInstance playerComponentModel() {
