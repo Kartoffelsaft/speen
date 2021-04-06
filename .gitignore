@@ -13,3 +13,5 @@ temp
 .vscode
 imgui.ini
 callgrind.*
+*.dll
+*.exe

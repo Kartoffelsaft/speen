@@ -2,15 +2,26 @@
 
 MAKE_MODE ?= debug
 EMBED_MODEL_FILES ?= false
+#TODO: somehow work out how to get compilation working on other platforms
+# I tried and holy shit visual studio sucks
+HOST_OS ?= linux
+TARGET_OS ?= linux
 
-SRC_DIR := ./src
-BUILD_DIR := ./.build
-SRCS := $(shell find $(SRC_DIR) -name *.cpp)
-OBJS := $(SRCS:%=$(BUILD_DIR)/$(MAKE_MODE)/%.o)
-DEPENDS := $(SRCS:%=$(BUILD_DIR)/%.d)
-LIB_OBJS := \
-    bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so \
-    $(BUILD_DIR)/dear-imgui/imgui.so
+HOST_TARGET_OS := $(HOST_OS)_$(TARGET_OS)
+
+ifeq ($(TARGET_OS),linux)
+OUT_EXE ?= a.out
+else ifeq ($(TARGET_OS),windows)
+OUT_EXE ?= a.exe
+endif
+
+ifeq ($(HOST_TARGET_OS),linux_linux)
+CXX = g++
+else ifeq ($(HOST_TARGET_OS),linux_windows)
+CXX = x86_64-w64-mingw32-g++
+else
+$(error $(HOST_OS) to $(TARGET_OS) compilation is not (currently) supported)
+endif
 
 ifeq ($(MAKE_MODE),debug)
 MODE_FLAGS := \
@@ -21,19 +32,55 @@ MODE_FLAGS := \
     -O3 \
     -g
 else
-@echo "WARNING: "$(MAKE_MODE)" is not a valid mode"
+$(error $(MAKE_MODE) is not a valid mode)
 endif
 
-CPPFLAGS := \
+SRC_DIR := ./src
+BUILD_DIR := ./.build
+SRCS := $(shell find $(SRC_DIR) -name *.cpp)
+OBJS := $(SRCS:%=$(BUILD_DIR)/$(HOST_TARGET_OS)/$(MAKE_MODE)/%.o)
+DEPENDS := $(SRCS:%=$(BUILD_DIR)/%.d)
+
+ifeq ($(HOST_TARGET_OS),linux_linux)
+LIB_OBJS := \
+    bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so \
+    $(BUILD_DIR)/dear-imgui/imguiLinux.o
+else ifeq ($(HOST_TARGET_OS),linux_windows)
+LIB_OBJS := \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbgfxRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbxRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbimgRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libglslangRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libglsl-optimizerRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libspirv-crossRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libspirv-optRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbimg_decodeRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbimg_encodeRelease.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libexample-glueRelease.a \
+    ./bx/.build/win64_mingw-gcc/bin/libbxRelease.a \
+    $(BUILD_DIR)/dear-imgui/imguiWindows.o
+endif
+
+CXXFLAGS := \
     -std=c++20
 
 LDFLAGS := \
     -lSDL2 \
+    -ldl \
+    -lpthread
+
+ifeq ($(TARGET_OS),linux)
+LDFLAGS := $(LDFLAGS) \
     -lGL \
     -lX11 \
-    -ldl \
-    -lpthread \
     -lrt
+else ifeq ($(TARGET_OS),windows)
+LDFLAGS := $(LDFLAGS) \
+    -lopengl32 \
+    -lgdi32 \
+    -lpsapi \
+    -limm32
+endif
 
 INCLUDES := \
     -Ibgfx/include \
@@ -43,10 +90,14 @@ INCLUDES := \
     -Itomlplusplus/include \
     -Iimgui
 
-DEFINES := 
+ifeq ($(HOST_TARGET_OS),linux_windows)
+INCLUDES := $(INCLUDES) -Ibx/include/compat/mingw
+endif
+
+CPPFLAGS := 
 
 ifeq ($(EMBED_MODEL_FILES), true)
-DEFINES := $(DEFINES) -DEMBED_MODEL_FILES
+CPPFLAGS := $(CPPFLAGS) -DEMBED_MODEL_FILES
 endif
 
 SHADER_SRC_DIR := ./shaders
@@ -65,16 +116,32 @@ MODEL_TARGETS := $(addprefix $(MODEL_BUILD_DIR)/,$(addsuffix .pmdl,$(MODEL_SRCS)
 endif
 MODEL_SRCS := $(addprefix $(MODEL_SRC_DIR)/,$(MODEL_SRCS))
 
-all: $(LIB_OBJS) $(SHADER_TARGETS) models a.out compile_commands.json
+.PHONY: all clean models
+default: all
+
+$(OUT_EXE): $(OBJS)
+> $(CXX) $(OBJS) -o $@ $(LIB_OBJS) $(INCLUDES) $(MODE_FLAGS) $(LDFLAGS) 
 
 bgfx/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so:
 > cd bgfx
 > make linux-debug64
 > cd ..
 
-$(BUILD_DIR)/dear-imgui/imgui.so: $(shell find imgui -maxdepth 1 -name *.cpp)
+bgfx/.build/win64_mingw-gcc/bin/lib%.a:
+> cd bgfx
+> pwd
+> make mingw-gcc-release64
+> cd ..
+
+./bx/.build/win64_mingw-gcc/bin/libbxRelease.a:
+> cd bx
+> make mingw-gcc-release64
+> cd ..
+
+$(BUILD_DIR)/dear-imgui/imgui%.o: $(shell find imgui -maxdepth 1 -name *.cpp)
 > mkdir -p $(dir $@)
-> g++ -shared -fPIC -O3 -o $@ $^
+> cat $^ > $(dir $@)/amalgamated.cpp
+> $(CXX) -O3 -o $@ -c $(dir $@)/amalgamated.cpp -Iimgui
 
 $(SHADER_BUILD_DIR)/v%.h: $(SHADER_SRC_DIR)/v%.sc
 > mkdir -p $(SHADER_BUILD_DIR)
@@ -97,14 +164,13 @@ $(MODEL_BUILD_DIR)/%.pmdl: $(MODEL_SRC_DIR)/%
 compile_commands.json: $(SRCS)
 > @echo 'compile_commands.json creation not set up yet'
 
-a.out: $(OBJS)
-> $(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LIB_OBJS) $(INCLUDES) $(MODE_FLAGS)
-
 -include $(DEPENDS)
 
-$(BUILD_DIR)/$(MAKE_MODE)/%.cpp.o: %.cpp Makefile
+$(BUILD_DIR)/$(HOST_TARGET_OS)/$(MAKE_MODE)/%.cpp.o: %.cpp Makefile
 > mkdir -p $(dir $@)
-> $(CXX) $(INCLUDES) $(DEFINES) $(CPPFLAGS) $(MODE_FLAGS) -MMD -MP -c $< -o $@
+> $(CXX) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS) $(MODE_FLAGS) -MMD -MP -c $< -o $@
+
+all: $(LIB_OBJS) $(SHADER_TARGETS) models $(OUT_EXE) compile_commands.json
 
 clean:
 > rm -r .build cookedModels shaderBuild

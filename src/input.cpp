@@ -52,8 +52,9 @@ bx::Vec3 getScreenWorldPos(float x, float y) {
     auto px = (int64_t)((x    ) * config.graphics.resolutionX);
     auto py = (int64_t)((1 - y) * config.graphics.resolutionY);
 
-    px = std::clamp(px, 0l, config.graphics.resolutionX - 1);
-    py = std::clamp(py, 0l, config.graphics.resolutionY - 1);
+    // mingw gets pissed if the <int64_t> isn't here
+    px = std::clamp<int64_t>(px, 0l, config.graphics.resolutionX - 1);
+    py = std::clamp<int64_t>(py, 0l, config.graphics.resolutionY - 1);
 
     bgfx::setViewClear(RENDER_BLIT_MOUSE_ID, BGFX_CLEAR_DEPTH);
     bgfx::blit(RENDER_BLIT_MOUSE_ID, depthTexture, 0, 0, rendererState.screenDepth, px, py, 1, 1);
