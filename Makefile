@@ -31,6 +31,9 @@ else ifeq ($(MAKE_MODE),release)
 MODE_FLAGS := \
     -O3 \
     -g
+else ifeq ($(MAKE_MODE),release_small)
+MODE_FLAGS := \
+    -Os
 else
 $(error $(MAKE_MODE) is not a valid mode)
 endif
@@ -47,7 +50,19 @@ LIB_OBJS := \
     $(BUILD_DIR)/dear-imgui/imguiLinux.o
 else ifeq ($(HOST_TARGET_OS),linux_windows)
 LIB_OBJS := \
-    ./bgfx/.build/win64_mingw-gcc/bin/libbgfxRelease.a \
+    $(BUILD_DIR)/dear-imgui/imguiWindows.o \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbgfxDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbxDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbimgDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libglslangDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libglsl-optimizerDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libspirv-crossDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libspirv-optDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbimg_decodeDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libbimg_encodeDebug.a \
+    ./bgfx/.build/win64_mingw-gcc/bin/libexample-glueDebug.a \
+    ./bx/.build/win64_mingw-gcc/bin/libbxDebug.a
+    #./bgfx/.build/win64_mingw-gcc/bin/libbgfxRelease.a \
     ./bgfx/.build/win64_mingw-gcc/bin/libbxRelease.a \
     ./bgfx/.build/win64_mingw-gcc/bin/libbimgRelease.a \
     ./bgfx/.build/win64_mingw-gcc/bin/libglslangRelease.a \
@@ -57,8 +72,7 @@ LIB_OBJS := \
     ./bgfx/.build/win64_mingw-gcc/bin/libbimg_decodeRelease.a \
     ./bgfx/.build/win64_mingw-gcc/bin/libbimg_encodeRelease.a \
     ./bgfx/.build/win64_mingw-gcc/bin/libexample-glueRelease.a \
-    ./bx/.build/win64_mingw-gcc/bin/libbxRelease.a \
-    $(BUILD_DIR)/dear-imgui/imguiWindows.o
+    ./bx/.build/win64_mingw-gcc/bin/libbxRelease.a
 endif
 
 CXXFLAGS := \

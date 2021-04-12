@@ -46,7 +46,9 @@ bx::Vec3 getScreenWorldPos(float x, float y) {
     static float depth;
     static bgfx::TextureHandle depthTexture = BGFX_INVALID_HANDLE;
     if(!bgfx::isValid(depthTexture)) [[unlikely]] {
-        depthTexture = bgfx::createTexture2D(1, 1, false, 1, bgfx::TextureFormat::D32F, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
+        auto format = bgfx::isTextureValid(0, false, 1, bgfx::TextureFormat::D32F, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)?
+            bgfx::TextureFormat::D32F : bgfx::TextureFormat::D24;
+        depthTexture = bgfx::createTexture2D(1, 1, false, 1, format, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
     }
 
     auto px = (int64_t)((x    ) * config.graphics.resolutionX);

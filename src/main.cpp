@@ -18,6 +18,10 @@
 #include "player.h"
 #include "gui.h"
 
+// Fuck you SDL
+#ifdef main
+#undef main
+#endif
 int main() {
     bgfx::setDebug(BGFX_DEBUG_STATS);
 

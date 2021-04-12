@@ -46,10 +46,11 @@ void initBgfx(SDL_Window * const window) {
 #if SDL_VIDEO_DRIVER_X11
     i.platformData.ndt = wndwInfo.info.x11.display;
     i.platformData.nwh = (void*)wndwInfo.info.x11.window;
+    i.type = bgfx::RendererType::OpenGL;
 #elif SDL_VIDEO_DRIVER_WINDOWS
+    i.type = bgfx::RendererType::OpenGL;
     i.platformData.nwh = wndwInfo.info.win.window;
 #endif
-    i.type = bgfx::RendererType::OpenGL;
 
     bgfx::init(i);
 
@@ -137,7 +138,8 @@ RendererState RendererState::init() {
                 config.graphics.resolutionY, 
                 false, 
                 1, 
-                bgfx::TextureFormat::D32F, 
+                bgfx::isTextureValid(0, false, 1, bgfx::TextureFormat::D32F, BGFX_TEXTURE_RT)? 
+                bgfx::TextureFormat::D32F : bgfx::TextureFormat::D24, 
                 BGFX_TEXTURE_RT
             ),
         };
