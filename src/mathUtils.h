@@ -139,10 +139,10 @@ std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> convolute
     auto const outSize = ImgSize - ConvSize + 1;
     std::array<float, outSize * outSize> ret;
 
-    for(int i = 0; i < outSize; i++) for(int j = 0; j < outSize; j++) {
+    for(std::size_t i = 0; i < outSize; i++) for(std::size_t j = 0; j < outSize; j++) {
         ret[i * outSize + j] = [=](){
             float sum = 0.f;
-            for(int ki = 0; ki < ConvSize; ki++) for(int kj = 0; kj < ConvSize; kj++) {
+            for(std::size_t ki = 0; ki < ConvSize; ki++) for(std::size_t kj = 0; kj < ConvSize; kj++) {
                 sum += image[(i + ki) * ImgSize + j + kj] * kernel[ki * ConvSize + kj];
             }
             return sum;
@@ -188,7 +188,7 @@ std::array<float, ImgSize * ImgSize> generateNoise(
     };
 
     for(auto const & [scale, amplification, seedOffset]: resolutions) {
-        for(int i = 0; i < ImgSize; i++) for(int j = 0; j < ImgSize; j++) {
+        for(int64_t i = 0; i < (int64_t)ImgSize; i++) for(int64_t j = 0; j < (int64_t)ImgSize; j++) {
             auto [u, uFract] = floorFract((i + offsetX) * scale);
             auto [v, vFract] = floorFract((j + offsetY) * scale);
             auto r00 = getPsuedoRand(u, v, seedOffset);

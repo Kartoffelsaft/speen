@@ -23,6 +23,9 @@ char const * weaponAsString(Weapon const weapon) {
         case BulletWeapon : return "Gun";
         case GrenadeWeapon: return "Grenade Launcher";
     }
+
+    // It's undefined behavior here. I'm just silencing a compiler warning
+    return nullptr;
 }
 
 struct InventoryItem {
@@ -135,7 +138,7 @@ void playerRunGuiInventory() {
         ImGui::BeginTable("Inventory Table", 1);
 
         ImGui::TableSetupColumn("Data");
-        for(int i = 0; i < inventory.size(); i++) {
+        for(std::size_t i = 0; i < inventory.size(); i++) {
             ImGui::PushID(i);
 
             ImGui::TableNextRow();
@@ -152,7 +155,7 @@ void playerRunGuiInventory() {
                 if(ImGuiPayload const * p = ImGui::AcceptDragDropPayload(DRAG_DROP_INVENTORY_INDEX)) {
                     auto const si = *(int const *)p->Data;
 
-                    if(si < i) {
+                    if(si < (int)i) {
                         std::rotate(inventory.begin() + si, inventory.begin() + si + 1, inventory.begin() + i + 1);
                     } else {
                         std::rotate(inventory.begin() + i, inventory.begin() + si, inventory.begin() + si + 1);

@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-err58-cpp"
 #include "model.h"
 #include "entitySystem.h"
 #include "rendererState.h"
@@ -19,5 +17,3 @@ EntitySystem entitySystem;
 
 World world;
 
-
-#pragma clang diagnostic pop

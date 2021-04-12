@@ -26,6 +26,7 @@ endif
 ifeq ($(MAKE_MODE),debug)
 MODE_FLAGS := \
     -O0 \
+    -Wall \
     -g
 else ifeq ($(MAKE_MODE),release)
 MODE_FLAGS := \

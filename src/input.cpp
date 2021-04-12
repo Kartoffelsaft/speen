@@ -72,7 +72,7 @@ bx::Vec3 getScreenWorldPos(float x, float y) {
     // holy shit it took me like at least 10 hours to figure out this is the equasion I need
     // yet I still have no idea how it works
     // touch with peril
-    auto z = 0.5 * (FAR_CLIP + NEAR_CLIP) * (2 * NEAR_CLIP) / (FAR_CLIP - depth * (FAR_CLIP - NEAR_CLIP));
+    auto z = 0.5f * (FAR_CLIP + NEAR_CLIP) * (2 * NEAR_CLIP) / (FAR_CLIP - depth * (FAR_CLIP - NEAR_CLIP));
     
     return viewInv * Vec3{xy.x * z, xy.y * z, z};
 }

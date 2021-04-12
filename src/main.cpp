@@ -60,7 +60,7 @@ int main() {
                             .colliderOffset = {0, 1, 0},
                             .layer = 0b0000'0001,
                             .mask = 0b0000'0001,
-                            .onCollision = [](EntityId const id, EntityId const otherId){printf("Collided with %i\n", otherId);},
+                            .onCollision = [](EntityId const id, EntityId const otherId){printf("Collided with %lu\n", otherId);},
                         }
                     });
                 }

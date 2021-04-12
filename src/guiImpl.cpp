@@ -144,8 +144,6 @@ bool ImGui_Implbgfx_CreateFontsTexture() {
 }
 
 bool ImGui_Implbgfx_CreateDeviceObjects() {
-    bgfx::RendererType::Enum type = bgfx::getRendererType();
-
     g_VertexLayout.begin()
         .add(bgfx::Attrib::Position , 2, bgfx::AttribType::Float)
         .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)

@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -78,7 +76,7 @@ Model Model::loadFromGLTFModel(
 
             void const * const bufferData = 
                 (void*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-            for(int i = 0; i < accessor.count; i++) {
+            for(std::size_t i = 0; i < accessor.count; i++) {
                 switch(accessor.componentType) {
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: 
                         indices.push_back(((uint8_t*)bufferData)[i]);
@@ -125,7 +123,7 @@ Model Model::loadFromGLTFModel(
             float const * const bufferData = 
                 (float*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
             // Here's going through the data and copying it
-            for(int i = 0; i < accessor.count * 3; i++) {
+            for(std::size_t i = 0; i < accessor.count * 3; i++) {
                 positions.push_back(bufferData[i]);
             }
 
@@ -152,7 +150,7 @@ Model Model::loadFromGLTFModel(
                 (void*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
             // bgfx is big endian, (abgr), gltf is little endian, (rgba), yet I don't need to
             // flip it here? wtf?
-            if(!padWithAlpha) { for(int i = 0; i < accessor.count; i++) {
+            if(!padWithAlpha) { for(std::size_t i = 0; i < accessor.count; i++) {
                 switch(accessor.componentType) {
                     case TINYGLTF_COMPONENT_TYPE_FLOAT:
                         colors.push_back(((float*)bufferData)[i*4 + 0]);
@@ -173,7 +171,7 @@ Model Model::loadFromGLTFModel(
                         colors.push_back(((uint16_t*)bufferData)[i*4 + 3] / (float)USHRT_MAX);
                         break;
                 }
-            }} else { for(int i = 0; i < accessor.count; i++) {
+            }} else { for(std::size_t i = 0; i < accessor.count; i++) {
                 switch(accessor.componentType) {
                     case TINYGLTF_COMPONENT_TYPE_FLOAT:
                         colors.push_back(((float*)bufferData)[i*3 + 0]);
@@ -208,7 +206,7 @@ Model Model::loadFromGLTFModel(
 
             float const * const bufferData = 
                 (float*)(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-            for(int i = 0; i < accessor.count * 3; i++) {
+            for(std::size_t i = 0; i < accessor.count * 3; i++) {
                 normals.push_back(bufferData[i]);
             }
         }
@@ -222,7 +220,7 @@ Model Model::loadFromGLTFModel(
         // where a, b, and c are types and the numbers are indices
         
         std::vector<uint8_t> retVertexVector(vertexCount * vertexElementSize);
-        if(!positions.empty()) for(int i = 0; i < vertexCount; i++) {
+        if(!positions.empty()) for(std::size_t i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 0)
                 = positions[i*3 + 0];
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 1)
@@ -230,7 +228,7 @@ Model Model::loadFromGLTFModel(
             *((float*)(retVertexVector.data() + i * vertexElementSize + positionOffset) + 2)
                 = positions[i*3 + 2];
         }
-        if(!colors.empty()) for(int i = 0; i < vertexCount; i++) {
+        if(!colors.empty()) for(std::size_t i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 0)
                 = colors[i*4 + 0];
             *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 1)
@@ -240,7 +238,7 @@ Model Model::loadFromGLTFModel(
             *((float*)(retVertexVector.data() + i * vertexElementSize + colorOffset) + 3)
                 = colors[i*4 + 3];
         }
-        if(!normals.empty()) for(int i = 0; i < vertexCount; i++) {
+        if(!normals.empty()) for(std::size_t i = 0; i < vertexCount; i++) {
             *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 0)
                 = normals[i*3 + 0];
             *((float*)(retVertexVector.data() + i * vertexElementSize + normalOffset) + 1)
@@ -323,5 +321,3 @@ void Model::Primitive::destroy() {
     bgfx::destroy(this->vertexBuffer);
     bgfx::destroy(this->indexBuffer);
 }
-
-#pragma clang diagnostic pop

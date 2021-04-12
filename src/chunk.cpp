@@ -33,16 +33,13 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
         1.f, 1.f, 1.f
     }, 1.f/12);
 
-    for(int i = 0; i < ret.tiles.size(); i++) {
+    for(std::size_t i = 0; i < ret.tiles.size(); i++) {
         ret.tiles[i].height = postConvHeightMap[i] * 5 - 20;
     }
 
     return ret;
 }
 
-#pragma clang diagnostic push
-// because we all know information is lost when converting from 5 to 5.0
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 Model::Primitive Chunk::asPrimitive(
     int const chunkOffsetX,
     int const chunkOffsetZ,
@@ -78,7 +75,7 @@ Model::Primitive Chunk::asPrimitive(
     float const gColorOffset = 0.7f;
     float const bColorOffset = 0.02;
 
-    for(int i = 0; i < this->tiles.size(); i++) {
+    for(int64_t i = 0; i < (int64_t)this->tiles.size(); i++) {
         vertices.push_back((float)(i % 16 + chunkOffsetX * 16));
         vertices.push_back((float)(this->tiles[i].height));
         vertices.push_back((float)(i / 16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
@@ -87,7 +84,7 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back(this->tiles[i].height * bColorScale + bColorOffset);
         vertices.push_back(1.f);
     }
-    unsigned int const rightChunkOffset = vertices.size() / vertexSize;
+    std::size_t const rightChunkOffset = vertices.size() / vertexSize;
     if(rightChunk.has_value()) for(int i = 0; i < 16; i++) {
         vertices.push_back((float)(16 + chunkOffsetX * 16));
         vertices.push_back((float)(rightChunk->tiles[i * 16].height));
@@ -97,7 +94,7 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back(rightChunk->tiles[i * 16].height * bColorScale + bColorOffset);
         vertices.push_back(1.f);
     }
-    unsigned int const bottomChunkOffset = vertices.size() / vertexSize;
+    std::size_t const bottomChunkOffset = vertices.size() / vertexSize;
     if(bottomChunk.has_value()) for(int i = 0; i < 16; i++) {
         vertices.push_back((float)(i + chunkOffsetX * 16));
         // yes I know "% 16" is redundant, but it's consistent
@@ -109,7 +106,7 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back(bottomChunk->tiles[i % 16].height * bColorScale + bColorOffset);
         vertices.push_back(1.f);
     }
-    unsigned int const bottomRightChunkOffset = vertices.size() / vertexSize;
+    std::size_t const bottomRightChunkOffset = vertices.size() / vertexSize;
     if(bottomRightChunk.has_value()) {
         vertices.push_back((float)(16 + chunkOffsetX * 16));
         vertices.push_back((float)(bottomRightChunk->tiles[0].height));
@@ -130,7 +127,7 @@ Model::Primitive Chunk::asPrimitive(
     // where the t's are regular tiles and the x's are "xtile"s
 
     // Also, holy crap this will need cleaning up
-    for(unsigned int i = 0; i < this->tiles.size() / 4; i++) {
+    for(std::size_t i = 0; i < this->tiles.size() / 4; i++) {
         auto const xtile = 
             (i/8 * 32)     // row
           + ((i * 2) % 16) // column
@@ -307,11 +304,9 @@ float World::sampleHeight(float x, float z) {
 }
 
 Vec3 World::getWorldNormal(float x, float z) {
-    auto o =  Vec3{x      , sampleHeight(x, z)      , z      };
-    auto pa = Vec3{x      , sampleHeight(x, z + 0.1), z + 0.1};
-    auto pb = Vec3{x + 0.1, sampleHeight(x + 0.1, z), z      };
+    auto o =  Vec3{x       , sampleHeight(x, z)       , z       };
+    auto pa = Vec3{x       , sampleHeight(x, z + 0.1f), z + 0.1f};
+    auto pb = Vec3{x + 0.1f, sampleHeight(x + 0.1f, z), z       };
 
     return ((pa - o).cross(pb - o)).normalized();
 }
-
-#pragma clang diagnostic pop
