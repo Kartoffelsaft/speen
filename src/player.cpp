@@ -8,6 +8,7 @@
 #include "chunk.h"
 #include "rendererState.h"
 #include "modelInstance.h"
+#include "health.h"
 
 #define PLAYER_MODEL "mokey.glb"
 
@@ -50,7 +51,11 @@ constexpr PhysicsComponent weaponProjectilePhysicsComponent(Weapon const weapon,
             .mask = 0b0000'1001,
             .onCollision = [](EntityId const id, EntityId const otherId) {
                 entitySystem.queueRemoveEntity(id);
-                entitySystem.queueRemoveEntity(otherId);
+                if(entitySystem.entityHasComponent<HealthComponent>(otherId)) {
+                    entitySystem.getComponentData<HealthComponent>(otherId).damage(otherId, 50);
+                } else {
+                    entitySystem.queueRemoveEntity(otherId);
+                }
                 inventory.emplace_back(InventoryItem{
                     .item = Weapon::GrenadeWeapon,
                 });

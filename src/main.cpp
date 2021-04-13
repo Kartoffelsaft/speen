@@ -17,6 +17,7 @@
 #include "physics.h"
 #include "player.h"
 #include "gui.h"
+#include "health.h"
 
 // Fuck you SDL
 #ifdef main
@@ -31,6 +32,7 @@ int main() {
     entitySystem.initComponent<InputComponent>();
     entitySystem.initComponent<OnFrameComponent>();
     entitySystem.initComponent<PhysicsComponent>();
+    entitySystem.initComponent<HealthComponent>();
     entitySystem.initComponent<GuiComponent>();
 
     InputState inputState;
@@ -62,6 +64,9 @@ int main() {
                             .mask = 0b0000'0001,
                             .onCollision = [](EntityId const id, EntityId const otherId){printf("Collided with %lu\n", otherId);},
                         }
+                    });
+                    entitySystem.addComponent(newPlacement, HealthComponent{
+                        .health = 103.f,
                     });
                 }
             }
