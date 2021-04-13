@@ -89,6 +89,9 @@ void shootAt(Vec3 const & at) {
     bx::mtxInverse(entitySystem.getComponentData<ModelInstance>(bulletId).orientation.data(), tmp.data());
 
     entitySystem.addComponent<PhysicsComponent>(bulletId, weaponProjectilePhysicsComponent(equipment.weapon, from, to));
+    entitySystem.addComponent<LifetimeComponent>(bulletId, LifetimeComponent{
+        .timeRemaining = 30.f,
+    });
 }
 
 void playerOnInput(InputState const & inputs, EntityId const id) {

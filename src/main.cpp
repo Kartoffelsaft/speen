@@ -32,6 +32,8 @@ int main() {
     entitySystem.initComponent<InputComponent>();
     entitySystem.initComponent<OnFrameComponent>();
     entitySystem.initComponent<PhysicsComponent>();
+    entitySystem.initComponent<DeathComponent>();
+    entitySystem.initComponent<LifetimeComponent>();
     entitySystem.initComponent<HealthComponent>();
     entitySystem.initComponent<GuiComponent>();
 
@@ -67,6 +69,8 @@ int main() {
                     });
                     entitySystem.addComponent(newPlacement, HealthComponent{
                         .health = 103.f,
+                    });
+                    entitySystem.addComponent(newPlacement, DeathComponent{
                         .onDeath = [](EntityId const id){printf("Ouch!\n");}
                     });
                 }
@@ -87,6 +91,10 @@ int main() {
 
         for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
             entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
+        }
+
+        for(auto const & entity: entitySystem.filterByComponent<LifetimeComponent>()) {
+            entitySystem.getComponentData<LifetimeComponent>(entity).age(entity, rendererState.lastFrameTimeElapsed);
         }
 
         for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
