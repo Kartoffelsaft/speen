@@ -32,6 +32,8 @@ struct EntitySystem {
 
     EntityId newEntity();
     void removeEntity(EntityId const id);
+    void queueRemoveEntity(EntityId const id);
+    void removeQueuedEntities();
 
     // c++ requires templates to be instantiable from where they are used, so
     // these definitions are stuck here
@@ -84,6 +86,8 @@ struct EntitySystem {
 private:
 
     EntityId nextEntityId = 0;
+
+    std::unordered_set<EntityId> entityRemovalQueue;
     
     std::unordered_map<ComponentId, Component*> components;
     template<typename T>

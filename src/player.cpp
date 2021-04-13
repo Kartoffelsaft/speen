@@ -49,8 +49,8 @@ constexpr PhysicsComponent weaponProjectilePhysicsComponent(Weapon const weapon,
             .layer = 0b0000'1000,
             .mask = 0b0000'1001,
             .onCollision = [](EntityId const id, EntityId const otherId) {
-                entitySystem.removeEntity(id);
-                entitySystem.removeEntity(otherId);
+                entitySystem.queueRemoveEntity(id);
+                entitySystem.queueRemoveEntity(otherId);
                 inventory.emplace_back(InventoryItem{
                     .item = Weapon::GrenadeWeapon,
                 });

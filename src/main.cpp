@@ -80,13 +80,11 @@ int main() {
         }
 
         for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
-            if(!entitySystem.invalidEntities.contains(entity))
-                entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
+            entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
         }
 
         for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
-            if(!entitySystem.invalidEntities.contains(entity))
-                entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, rendererState.lastFrameTimeElapsed);
+            entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, rendererState.lastFrameTimeElapsed);
         }
 
         bgfx::setUniform(
@@ -113,6 +111,7 @@ int main() {
         }
 
         rendererState.finishRender();
+        entitySystem.removeQueuedEntities();
     }
 
     terminateGui();
