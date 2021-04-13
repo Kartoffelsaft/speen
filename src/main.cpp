@@ -67,6 +67,7 @@ int main() {
                     });
                     entitySystem.addComponent(newPlacement, HealthComponent{
                         .health = 103.f,
+                        .onDeath = [](EntityId const id){printf("Ouch!\n");}
                     });
                 }
             }

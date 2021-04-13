@@ -7,4 +7,5 @@ struct HealthComponent {
     float maxHealth = health;
 
     bool damage(EntityId const id, float const amount);
+    void (*onDeath)(EntityId const id) = nullptr;
 };

@@ -5,6 +5,7 @@ bool HealthComponent::damage(EntityId const id, float const amount) {
 
     this->health -= amount;
     if(health <= 0) {
+        if(this->onDeath) onDeath(id);
         entitySystem.queueRemoveEntity(id);
         return true;
     }
