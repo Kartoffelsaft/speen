@@ -298,6 +298,12 @@ ModelLoader ModelLoader::init() {
 #include "../cookedModels/bullet.glb.h"
                 };
                 return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
+            }()},
+            {"./cookedModels/explosion.glb.pmdl", [](){
+                uint8_t const data[] = {
+#include "../cookedModels/explosion.glb.h"
+                };
+                return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
             }()}
         }
     };

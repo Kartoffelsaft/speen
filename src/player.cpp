@@ -9,6 +9,7 @@
 #include "rendererState.h"
 #include "modelInstance.h"
 #include "health.h"
+#include "explosion.h"
 
 #define PLAYER_MODEL "mokey.glb"
 
@@ -50,11 +51,11 @@ constexpr PhysicsComponent weaponProjectilePhysicsComponent(Weapon const weapon,
             .layer = 0b0000'1000,
             .mask = 0b0000'1001,
             .onCollision = [](EntityId const id, EntityId const otherId) {
-                entitySystem.queueRemoveEntity(id);
+                killEntity(id);
                 if(entitySystem.entityHasComponent<HealthComponent>(otherId)) {
                     entitySystem.getComponentData<HealthComponent>(otherId).damage(otherId, 50);
                 } else {
-                    entitySystem.queueRemoveEntity(otherId);
+                    killEntity(otherId);
                 }
                 inventory.emplace_back(InventoryItem{
                     .item = Weapon::GrenadeWeapon,
@@ -90,8 +91,17 @@ void shootAt(Vec3 const & at) {
 
     entitySystem.addComponent<PhysicsComponent>(bulletId, weaponProjectilePhysicsComponent(equipment.weapon, from, to));
     entitySystem.addComponent<LifetimeComponent>(bulletId, LifetimeComponent{
-        .timeRemaining = 30.f,
+        .timeRemaining = 3.f,
     });
+
+    if(equipment.weapon == Weapon::GrenadeWeapon) {
+        entitySystem.addComponent<DeathComponent>(bulletId, DeathComponent{
+            .onDeath = [](EntityId const id) {
+                auto const pos = entitySystem.getComponentData<PhysicsComponent>(id).position;
+                createExplosion(pos, 1.f);
+            }
+        });
+    }
 }
 
 void playerOnInput(InputState const & inputs, EntityId const id) {
