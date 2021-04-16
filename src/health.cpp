@@ -6,10 +6,18 @@ void killEntity(EntityId const id) {
 }
 
 bool LifetimeComponent::age(EntityId const id, float const delta) {
-    this->timeRemaining -= delta;
-    if(timeRemaining <= 0) {
-        killEntity(id);
-        return true;
+    if(auto* time = std::get_if<float>(&timeRemaining)) {
+        *time -= delta;
+        if(*time <= 0) {
+            killEntity(id);
+            return true;
+        }
+    } else if (auto* frames = std::get_if<int>(&timeRemaining)) {
+        *frames -= 1;
+        if(*frames <= 0) {
+            killEntity(id);
+            return true;
+        }
     }
 
     return false;

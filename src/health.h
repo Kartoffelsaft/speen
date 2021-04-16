@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+
 #include "entitySystem.h"
 
 struct DeathComponent {
@@ -9,7 +11,7 @@ struct DeathComponent {
 void killEntity(EntityId const id);
 
 struct LifetimeComponent {
-    float timeRemaining;
+    std::variant<float, int> timeRemaining; // float is seconds, int is frames
 
     bool age(EntityId const id, float const delta);
 };
