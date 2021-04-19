@@ -31,10 +31,12 @@ MODE_FLAGS := \
 else ifeq ($(MAKE_MODE),release)
 MODE_FLAGS := \
     -O3 \
+    -funsafe-math-optimizations\
     -g
 else ifeq ($(MAKE_MODE),release_small)
 MODE_FLAGS := \
-    -Os
+    -Os \
+    -funsafe-math-optimizations
 else
 $(error $(MAKE_MODE) is not a valid mode)
 endif
