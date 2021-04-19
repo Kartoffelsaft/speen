@@ -84,21 +84,20 @@ int main() {
 
     while(!rendererState.windowShouldClose) {
         inputState.updateInputs();
-        for(auto const & entity: entitySystem.filterByComponent<InputComponent>()) {
-            auto& inputHandler = entitySystem.getComponentData<InputComponent>(entity);
-            inputHandler.onInput(inputState, entity);
+        for(auto& [id, inp]: entitySystem.filterByComponent<InputComponent>()) {
+            inp.onInput(inputState, id);
         }
 
-        for(auto const & entity: entitySystem.filterByComponent<OnFrameComponent>()) {
-            entitySystem.getComponentData<OnFrameComponent>(entity).onFrame(entity, rendererState.lastFrameTimeElapsed);
+        for(auto& [id, comp]: entitySystem.filterByComponent<OnFrameComponent>()) {
+            comp.onFrame(id, rendererState.lastFrameTimeElapsed);
         }
 
-        for(auto const & entity: entitySystem.filterByComponent<LifetimeComponent>()) {
-            entitySystem.getComponentData<LifetimeComponent>(entity).age(entity, rendererState.lastFrameTimeElapsed);
+        for(auto& [id, comp]: entitySystem.filterByComponent<LifetimeComponent>()) {
+            comp.age(id, rendererState.lastFrameTimeElapsed);
         }
 
-        for(auto const & entity: entitySystem.filterByComponent<PhysicsComponent>()) {
-            entitySystem.getComponentData<PhysicsComponent>(entity).step(entity, rendererState.lastFrameTimeElapsed);
+        for(auto& [id, comp]: entitySystem.filterByComponent<PhysicsComponent>()) {
+            comp.step(id, rendererState.lastFrameTimeElapsed);
         }
 
         bgfx::setUniform(
@@ -120,8 +119,8 @@ int main() {
             bgfx::setViewOrder(0, viewOrder.size(), viewOrder.data());
         }
        
-        for(auto const & e: entitySystem.filterByComponent<ModelInstance>()) {
-            entitySystem.getComponentData<ModelInstance>(e).draw();
+        for(auto const & [_, model]: entitySystem.filterByComponent<ModelInstance>()) {
+            model.draw();
         }
 
         rendererState.finishRender();

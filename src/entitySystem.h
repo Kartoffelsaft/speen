@@ -63,6 +63,8 @@ struct EntitySystem {
         return getComponent<T>().containsEntity(id);
     }
     
+    /*
+    // TODO: eventually use std::ranges::filter_view or something
     template<typename T>
     std::vector<EntityId> filterByComponent(std::vector<EntityId>&& ids) {
         auto const & component = getComponent<T>();
@@ -71,16 +73,11 @@ struct EntitySystem {
         } else {e++;}
         return std::move(ids);
     }
+    */
     
     template<typename T>
-    std::vector<EntityId> filterByComponent() {
-        std::vector<EntityId> ret;
-        ret.reserve(entities.size());
-        auto const & component = getComponent<T>();
-        for(auto const & e: entities) if(component.containsEntity(e)) {
-            ret.emplace_back(e);
-        }
-        return ret;
+    std::ranges::ref_view<ComponentType<T>> filterByComponent() {
+        return std::ranges::ref_view{this->getComponent<T>()};
     }
     
 private:

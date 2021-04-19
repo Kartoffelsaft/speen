@@ -30,14 +30,13 @@ void PhysicsComponent::step(EntityId const id, float const delta) {
     }
 
     if(collidable && collidable->onCollision) {
-        for(auto const & otherId: entitySystem.filterByComponent<PhysicsComponent>()) if(otherId != id) {
-            auto& other = entitySystem.getComponentData<PhysicsComponent>(otherId);
-            if(other.collidable && (
-              (this->collidable->layer & other.collidable->layer)
-            ||(this->collidable->mask  & other.collidable->layer)
+        for(auto& [otherId, otherComp]: entitySystem.filterByComponent<PhysicsComponent>()) if(otherId != id) {
+            if(otherComp.collidable && (
+              (this->collidable->layer & otherComp.collidable->layer)
+            ||(this->collidable->mask  & otherComp.collidable->layer)
             )) {
-                auto collDst = other.collidable->collisionRange + this->collidable->collisionRange;
-                if(((this->position + this->collidable->colliderOffset) - (other.position + other.collidable->colliderOffset)).lengthSquared() < collDst * collDst) {
+                auto collDst = otherComp.collidable->collisionRange + this->collidable->collisionRange;
+                if(((this->position + this->collidable->colliderOffset) - (otherComp.position + otherComp.collidable->colliderOffset)).lengthSquared() < collDst * collDst) {
                     this->collidable->onCollision(id, otherId);
                 }
             }
