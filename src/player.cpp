@@ -99,6 +99,11 @@ void shootAt(Vec3 const & at) {
             .onDeath = [](EntityId const id) {
                 auto const pos = entitySystem.getComponentData<PhysicsComponent>(id).position;
                 createExplosion(pos, 1.f);
+
+                auto h = world.sampleHeight(pos.x, pos.z);
+                if(h && h.value() - pos.y < 2.f) {
+                    world.getTileMut(pos.x + 0.5, pos.z + 0.5)->height -= 1.f; // crater!
+                }
             }
         });
     }

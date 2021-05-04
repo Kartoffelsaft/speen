@@ -207,7 +207,8 @@ void Chunk::unloadPrimitive() {
 
 std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
     if(
-        cx != this->oldCx
+        this->outdatedChunks.size() > 0
+     || cx != this->oldCx
      || cz != this->oldCz
      || renderDistance != this->oldRenderDistance
      || !this->model.has_value()
@@ -238,7 +239,8 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     for(auto & [coord, chunk]: chunks) {
         auto [x, z] = coord;
         if(
-            x < cx - unloadDistance
+            outdatedChunks.contains({x, z})
+         || x < cx - unloadDistance
          || x > cx + unloadDistance
          || z < cz - unloadDistance
          || z > cz + unloadDistance
@@ -246,6 +248,8 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
             chunk.unloadPrimitive();
         }
     }
+
+    outdatedChunks.clear();
 
     for(int i = cx - renderDistance; i < cx + renderDistance; i++)
         for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
@@ -281,11 +285,17 @@ Tile* World::getTileMut(int x, int z) {
         zdiv.quot -= 1;
     }
 
-    // TODO: create some sort of error handling for when there is no tile 
-    // at the requested location
     if(!chunks.contains({xdiv.quot, zdiv.quot})) {
         return nullptr;
     }
+
+    // if the caller is using the mutable version, then it's probably getting mutated
+    // therefor this chunk is likely outdated (and adjacent ones if it's on the edge)
+    outdatedChunks.insert({xdiv.quot, zdiv.quot});
+    if(xdiv.rem == 0 ) outdatedChunks.insert({xdiv.quot - 1, zdiv.quot     });
+    if(xdiv.rem == 15) outdatedChunks.insert({xdiv.quot + 1, zdiv.quot     });
+    if(zdiv.rem == 0 ) outdatedChunks.insert({xdiv.quot    , zdiv.quot  - 1});
+    if(zdiv.rem == 15) outdatedChunks.insert({xdiv.quot    , zdiv.quot  + 1});
 
     return &chunks.at({xdiv.quot, zdiv.quot}).tiles[zdiv.rem * 16 + xdiv.rem];
 }
@@ -302,8 +312,6 @@ Tile const * World::getTile(int x, int z) const {
         zdiv.quot -= 1;
     }
 
-    // TODO: create some sort of error handling for when there is no tile 
-    // at the requested location
     if(!chunks.contains({xdiv.quot, zdiv.quot})) {
         return nullptr;
     }
