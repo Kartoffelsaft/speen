@@ -2,6 +2,7 @@
 
 #include <array>
 #include <memory>
+#include <set>
 
 #include "model.h"
 #include "entitySystem.h"
@@ -38,15 +39,44 @@ private:
 
 struct World {
     std::map<std::pair<int, int>, Chunk> chunks;
+    std::set<std::pair<int, int>> outdatedChunks;
     int const worldSeed = 666666;
 
     std::optional<std::shared_ptr<Model>> model;
 
     std::weak_ptr<Model> updateModel(int cx, int cz, int renderDistance);
 
-    Tile& getTile(int x, int z);
-    float sampleHeight(float x, float z);
-    Vec3 getWorldNormal(float x, float z);
+    /**
+     * @brief Get a mutable pointer to a tile
+     * 
+     * @param x 
+     * @param z 
+     * @return Tile*. Will be a nullptr if the tile has not been generated yet
+     */
+    Tile* getTileMut(int x, int z);
+
+    /**
+     * @brief Get a pointer to a tile
+     * Like getTileMut, but const
+     * 
+     * @param x 
+     * @param z 
+     * @return Tile const*. Will be a nullptr if the tile has not been generated yet
+     */
+    Tile const * getTile(int x, int z) const;
+
+    /**
+     * @brief Get the height of the world at a given coordinate
+     * Allows for values between tiles
+     * 
+     * @param x 
+     * @param z 
+     * @return std::optional<float> 
+     */
+    std::optional<float> sampleHeight(float x, float z);
+
+
+    std::optional<Vec3> getWorldNormal(float x, float z);
 
 private:
     int oldCx = -999;

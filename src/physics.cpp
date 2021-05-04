@@ -10,14 +10,16 @@ void PhysicsComponent::step(EntityId const id, float const delta) {
         case PhysicsType::Floating:
             break;
         case PhysicsType::Grounded:
-            position.y = world.sampleHeight(position.x, position.z);
+            position.y = world.sampleHeight(position.x, position.z).value_or(0.f);
             break;
         case PhysicsType::Bouncy:
             auto h = world.sampleHeight(position.x, position.z);
-            if(position.y < h) {
-                position.y = h;
+            if(h && position.y < h) {
+                position.y = h.value();
                 auto norm = world.getWorldNormal(position.x, position.z);
-                velocity += norm * velocity.dot(norm) * -2.f;
+                if(norm) {
+                    velocity += norm.value() * velocity.dot(norm.value()) * -2.f;
+                }
             }
             break;
     }

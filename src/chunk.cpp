@@ -269,7 +269,7 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     };
 }
 
-Tile& World::getTile(int x, int z) {
+Tile* World::getTileMut(int x, int z) {
     auto xdiv = std::div(x, 16);
     if(xdiv.rem < 0) {
         xdiv.rem += 16;
@@ -284,29 +284,68 @@ Tile& World::getTile(int x, int z) {
     // TODO: create some sort of error handling for when there is no tile 
     // at the requested location
     if(!chunks.contains({xdiv.quot, zdiv.quot})) {
-        chunks.emplace(std::make_pair(xdiv.quot, zdiv.quot), Chunk::generate(xdiv.quot, zdiv.quot, this->worldSeed));
+        return nullptr;
     }
 
-    return chunks.at({xdiv.quot, zdiv.quot}).tiles[zdiv.rem * 16 + xdiv.rem];
+    return &chunks.at({xdiv.quot, zdiv.quot}).tiles[zdiv.rem * 16 + xdiv.rem];
 }
 
-float World::sampleHeight(float x, float z) {
+Tile const * World::getTile(int x, int z) const {
+    auto xdiv = std::div(x, 16);
+    if(xdiv.rem < 0) {
+        xdiv.rem += 16;
+        xdiv.quot -= 1;
+    }
+    auto zdiv = std::div(z, 16);
+    if(zdiv.rem < 0) {
+        zdiv.rem += 16;
+        zdiv.quot -= 1;
+    }
+
+    // TODO: create some sort of error handling for when there is no tile 
+    // at the requested location
+    if(!chunks.contains({xdiv.quot, zdiv.quot})) {
+        return nullptr;
+    }
+
+    return &chunks.at({xdiv.quot, zdiv.quot}).tiles[zdiv.rem * 16 + xdiv.rem];
+}
+
+std::optional<float> World::sampleHeight(float x, float z) {
     auto [ix, rx] = floorFract(x);
     auto [iz, rz] = floorFract(z);
+    
+    auto r00 = this->getTile(ix    , iz    );
+    auto r01 = this->getTile(ix    , iz + 1);
+    auto r10 = this->getTile(ix + 1, iz    );
+    auto r11 = this->getTile(ix + 1, iz + 1);
 
-    return interpolate(
-        this->getTile(ix    , iz    ).height, 
-        this->getTile(ix    , iz + 1).height, 
-        this->getTile(ix + 1, iz    ).height, 
-        this->getTile(ix + 1, iz + 1).height, 
-        rx, rz
-    );
+    if(r00 && r01 && r10 && r11) {
+        return interpolate(
+            r00->height, 
+            r01->height, 
+            r10->height, 
+            r11->height, 
+            rx, rz
+        );
+    } else {
+        return std::nullopt;
+    }
 }
 
-Vec3 World::getWorldNormal(float x, float z) {
-    auto o =  Vec3{x       , sampleHeight(x, z)       , z       };
-    auto pa = Vec3{x       , sampleHeight(x, z + 0.1f), z + 0.1f};
-    auto pb = Vec3{x + 0.1f, sampleHeight(x + 0.1f, z), z       };
+std::optional<Vec3> World::getWorldNormal(float x, float z) {
+    // would look a lot simpler with rust's '?' operator
+    auto c = sampleHeight(x, z);
+    auto a = sampleHeight(x, z + 0.1f);
+    auto b = sampleHeight(x + 0.1f, z);
 
-    return ((pa - o).cross(pb - o)).normalized();
+    if(c && a && b) {
+        auto o =  Vec3{x       , c.value(), z       };
+        auto pa = Vec3{x       , a.value(), z + 0.1f};
+        auto pb = Vec3{x + 0.1f, b.value(), z       };
+
+        return ((pa - o).cross(pb - o)).normalized();
+    } else {
+        return std::nullopt;
+    }
 }
