@@ -120,7 +120,7 @@ int main() {
         }
        
         for(auto const & [_, model]: entitySystem.filterByComponent<ModelInstance>()) {
-            model.draw();
+            if(model.mustRender || world.withinRenderDistance(model)) model.draw();
         }
 
         rendererState.finishRender();

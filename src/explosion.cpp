@@ -45,5 +45,8 @@ std::tuple<EntityId, EntityId> createExplosion(Vec3 const & pos, float const rad
         }
     });
 
+    // the damaging part of the explosion should exist for at most one frame
+    entitySystem.addComponent(explosionPhysical, LifetimeComponent{.timeRemaining = 1});
+
     return {explosionVisual, explosionPhysical};
 }

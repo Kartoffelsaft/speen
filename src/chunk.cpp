@@ -34,7 +34,9 @@ constexpr RGB<float> Tile::color() const {
 EntityId createWorldEntity() { 
     auto terrain = entitySystem.newEntity();
     entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, 1)));
-    auto& terrainOrientation = entitySystem.getComponentData<ModelInstance>(terrain).orientation;
+    auto& mi = entitySystem.getComponentData<ModelInstance>(terrain);
+    mi.mustRender = true;
+    auto& terrainOrientation = mi.orientation;
     terrainOrientation[12] = 0.f;
     terrainOrientation[13] = 0.f;
     terrainOrientation[14] = 0.f;
@@ -283,6 +285,16 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     return Model{
         .primitives = primitives
     };
+}
+
+bool World::withinRenderDistance(ModelInstance const & mod) const {
+    // using the old render distance values because I'm lazy
+    // they get updated frequently anyways
+    auto dx = std::abs(this->oldCx - (int)(mod.orientation[12] / 16));
+    auto dz = std::abs(this->oldCz - (int)(mod.orientation[14] / 16));
+
+    return dx <= oldRenderDistance
+        && dz <= oldRenderDistance;
 }
 
 Tile* World::getTileMut(int x, int z) {

@@ -10,6 +10,7 @@ struct ModelInstance {
 
     std::weak_ptr<Model const> model;
     Mat4 orientation;
+    bool mustRender = false;
 
     void draw() const;
 };

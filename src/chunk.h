@@ -5,6 +5,7 @@
 #include <set>
 
 #include "model.h"
+#include "modelInstance.h"
 #include "entitySystem.h"
 #include "mathUtils.h"
 
@@ -51,6 +52,8 @@ struct World {
     std::optional<std::shared_ptr<Model>> model;
 
     std::weak_ptr<Model> updateModel(int cx, int cz, int renderDistance);
+
+    bool withinRenderDistance(ModelInstance const & mod) const;
 
     /**
      * @brief Get a mutable pointer to a tile
