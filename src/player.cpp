@@ -102,7 +102,9 @@ void shootAt(Vec3 const & at) {
 
                 auto h = world.sampleHeight(pos.x, pos.z);
                 if(h && h.value() - pos.y < 2.f) {
-                    world.getTileMut(pos.x + 0.5, pos.z + 0.5)->height -= 1.f; // crater!
+                    Tile* damagedTile = world.getTileMut(pos.x + 0.5, pos.z + 0.5);
+                    damagedTile->height -= 0.3;
+                    damagedTile->type = Tile::Type::Blasted;
                 }
             }
         });

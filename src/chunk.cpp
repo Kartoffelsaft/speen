@@ -7,6 +7,30 @@
 #include "mathUtils.h"
 #include "modelInstance.h"
 
+constexpr RGB<float> Tile::color() const {
+    float const rGrassColorScale = 0.01f;
+    float const gGrassColorScale = 0.02f;
+    float const bGrassColorScale = 0.01f;
+    float const rGrassColorOffset = 0.05f;
+    float const gGrassColorOffset = 0.7f;
+    float const bGrassColorOffset = 0.02;
+    switch(this->type) {
+    case Tile::Type::Grass:
+
+        return {
+            .r = this->height * rGrassColorScale + rGrassColorOffset,
+            .g = this->height * gGrassColorScale + gGrassColorOffset,
+            .b = this->height * bGrassColorScale + bGrassColorOffset,
+        };
+    case Tile::Type::Blasted:
+        return {
+            .r = 0.23f,
+            .g = 0.23f,
+            .b = 0.23f,
+        };
+    }
+}
+
 EntityId createWorldEntity() { 
     auto terrain = entitySystem.newEntity();
     entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, 1)));
@@ -34,7 +58,10 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
     }, 1.f/12);
 
     for(std::size_t i = 0; i < ret.tiles.size(); i++) {
-        ret.tiles[i].height = postConvHeightMap[i] * 5 - 20;
+        ret.tiles[i] = {
+            .height = postConvHeightMap[i] * 5 - 20,
+            .type = Tile::Type::Grass,
+        };
     }
 
     return ret;
@@ -68,20 +95,11 @@ Model::Primitive Chunk::asPrimitive(
     vertices.reserve((this->tiles.size() + 33) * vertexSize);
     indices.reserve((this->tiles.size()) * 3 * 2);
 
-    float const rColorScale = 0.01f;
-    float const gColorScale = 0.02f;
-    float const bColorScale = 0.01f;
-    float const rColorOffset = 0.05f;
-    float const gColorOffset = 0.7f;
-    float const bColorOffset = 0.02;
-
     for(int64_t i = 0; i < (int64_t)this->tiles.size(); i++) {
         vertices.push_back((float)(i % 16 + chunkOffsetX * 16));
         vertices.push_back((float)(this->tiles[i].height));
         vertices.push_back((float)(i / 16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
-        vertices.push_back(this->tiles[i].height * rColorScale + rColorOffset);
-        vertices.push_back(this->tiles[i].height * gColorScale + gColorOffset);
-        vertices.push_back(this->tiles[i].height * bColorScale + bColorOffset);
+        this->tiles[i].color().appendToVector(vertices);
         vertices.push_back(1.f);
     }
     std::size_t const rightChunkOffset = vertices.size() / vertexSize;
@@ -89,9 +107,7 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back((float)(16 + chunkOffsetX * 16));
         vertices.push_back((float)(rightChunk->tiles[i * 16].height));
         vertices.push_back((float)(i + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
-        vertices.push_back(rightChunk->tiles[i * 16].height * rColorScale + rColorOffset);
-        vertices.push_back(rightChunk->tiles[i * 16].height * gColorScale + gColorOffset);
-        vertices.push_back(rightChunk->tiles[i * 16].height * bColorScale + bColorOffset);
+        rightChunk->tiles[i * 16].color().appendToVector(vertices);
         vertices.push_back(1.f);
     }
     std::size_t const bottomChunkOffset = vertices.size() / vertexSize;
@@ -101,9 +117,7 @@ Model::Primitive Chunk::asPrimitive(
         // a good compiler will optimize it out anyways
         vertices.push_back((float)(bottomChunk->tiles[i % 16].height));
         vertices.push_back((float)(16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
-        vertices.push_back(bottomChunk->tiles[i % 16].height * rColorScale + rColorOffset);
-        vertices.push_back(bottomChunk->tiles[i % 16].height * gColorScale + gColorOffset);
-        vertices.push_back(bottomChunk->tiles[i % 16].height * bColorScale + bColorOffset);
+        bottomChunk->tiles[i % 16].color().appendToVector(vertices);
         vertices.push_back(1.f);
     }
     std::size_t const bottomRightChunkOffset = vertices.size() / vertexSize;
@@ -111,9 +125,7 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back((float)(16 + chunkOffsetX * 16));
         vertices.push_back((float)(bottomRightChunk->tiles[0].height));
         vertices.push_back((float)(16 + chunkOffsetZ * 16)); // NOLINT(bugprone-integer-division)
-        vertices.push_back(bottomRightChunk->tiles[0].height * rColorScale + rColorOffset);
-        vertices.push_back(bottomRightChunk->tiles[0].height * gColorScale + gColorOffset);
-        vertices.push_back(bottomRightChunk->tiles[0].height * bColorScale + bColorOffset);
+        bottomRightChunk->tiles[0].color().appendToVector(vertices);
         vertices.push_back(1.f);
     }
 
@@ -291,6 +303,7 @@ Tile* World::getTileMut(int x, int z) {
 
     // if the caller is using the mutable version, then it's probably getting mutated
     // therefor this chunk is likely outdated (and adjacent ones if it's on the edge)
+    // TODO: deal with corners too
     outdatedChunks.insert({xdiv.quot, zdiv.quot});
     if(xdiv.rem == 0 ) outdatedChunks.insert({xdiv.quot - 1, zdiv.quot     });
     if(xdiv.rem == 15) outdatedChunks.insert({xdiv.quot + 1, zdiv.quot     });

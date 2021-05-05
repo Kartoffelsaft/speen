@@ -87,6 +87,19 @@ inline Mat4 operator *(Mat4 const & mtxA, Mat4 const & mtxB) {
     bx::mtxMul(ret.data(), mtxB.data(), mtxA.data());
     return ret;
 }
+
+template<typename T>
+struct RGB {
+    T r;
+    T g;
+    T b;
+
+    void appendToVector(std::vector<T>& vec) {
+        vec.push_back(r);
+        vec.push_back(g);
+        vec.push_back(b);
+    }
+};
     
 /**
  * @brief returns an integer and a fractional component of the input number, towards -inf.

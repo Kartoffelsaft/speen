@@ -12,6 +12,12 @@ EntityId createWorldEntity();
 
 struct Tile {
     float height;
+    enum Type {
+        Grass,
+        Blasted,
+    }; Type type;
+
+    constexpr RGB<float> color() const;
 };
 
 struct Chunk {
