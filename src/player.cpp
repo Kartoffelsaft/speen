@@ -83,6 +83,8 @@ void shootAt(Vec3 const & at) {
 
     auto bulletId = entitySystem.newEntity();
 
+    entitySystem.addComponent(bulletId, "Player Bullet");
+
     entitySystem.addComponent<ModelInstance>(bulletId, ModelInstance::fromModelPtr(LOAD_MODEL("bullet.glb")));
 
     Mat4 tmp;
@@ -266,6 +268,7 @@ GuiComponent playerComponentGui() {
 EntityId createPlayer() { 
     playerId = entitySystem.newEntity();
 
+    entitySystem.addComponent(playerId, "Player");
     entitySystem.addComponent(playerId, playerComponentModel());
     entitySystem.addComponent(playerId, playerComponentPhysics());
     entitySystem.addComponent(playerId, playerComponentInput());

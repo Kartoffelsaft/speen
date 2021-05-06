@@ -7,7 +7,9 @@
 
 std::tuple<EntityId, EntityId> createExplosion(Vec3 const & pos, float const radius) {
     auto explosionVisual = entitySystem.newEntity(); // separate entities because the visual lasts much longer
+    entitySystem.addComponent(explosionVisual, "Explosion (Visual)");
     auto explosionPhysical = entitySystem.newEntity();
+    entitySystem.addComponent(explosionPhysical, "Explosion (Physical)");
 
     static std::default_random_engine rng{std::random_device{}()};
     std::uniform_real_distribution<> rotationGenerator(0.f, 360.f);

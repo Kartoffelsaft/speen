@@ -18,6 +18,7 @@
 #include "player.h"
 #include "gui.h"
 #include "health.h"
+#include "debug.h"
 
 // Fuck you SDL
 #ifdef main
@@ -36,11 +37,15 @@ int main() {
     entitySystem.initComponent<LifetimeComponent>();
     entitySystem.initComponent<HealthComponent>();
     entitySystem.initComponent<GuiComponent>();
+    entitySystem.initComponent<char const *>();
+
+    createDebugEntity();
 
     InputState inputState;
 
     {
         auto donut = entitySystem.newEntity();
+        entitySystem.addComponent(donut, "Donut");
         entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
         entitySystem.addComponent(donut, InputComponent{
             .onInput = [](InputState const & inputs, EntityId const id) {

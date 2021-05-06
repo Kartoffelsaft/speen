@@ -33,6 +33,7 @@ constexpr RGB<float> Tile::color() const {
 
 EntityId createWorldEntity() { 
     auto terrain = entitySystem.newEntity();
+    entitySystem.addComponent(terrain, "World");
     entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, 1)));
     auto& mi = entitySystem.getComponentData<ModelInstance>(terrain);
     mi.mustRender = true;
