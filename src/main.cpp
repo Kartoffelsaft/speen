@@ -39,7 +39,7 @@ int main() {
     entitySystem.initComponent<GuiComponent>();
     entitySystem.initComponent<char const *>();
 
-    createDebugEntity();
+    if(config.misc.debug) createDebugEntity();
 
     InputState inputState;
 

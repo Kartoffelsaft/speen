@@ -28,7 +28,13 @@ struct Config {
         std::unordered_set<InputDatum> down;
         std::unordered_set<InputDatum> place;
         std::unordered_set<InputDatum> attack;
+
+        std::unordered_set<InputDatum> toggleDebugMenu;
     } keybindings;
+
+    struct {
+        bool debug;
+    } misc;
 };
 
 extern Config config;

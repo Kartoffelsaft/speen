@@ -34,6 +34,11 @@ up = "R"
 down = "F"
 place = "mouse2"
 attack = "mouse1"
+
+toggleDebugMenu = "`"
+
+[misc]
+debug = false
 )TOML"; };
 
 InputDatum getBinding(std::string const bindName) {
@@ -109,6 +114,14 @@ if(auto* keyName = settingsData[SETTING_SECTION][#ACTION_NAME].as_string()) {\
             GET_KEYBINDS(down),
             GET_KEYBINDS(place),
             GET_KEYBINDS(attack),
+
+            GET_KEYBINDS(toggleDebugMenu),
+#undef SETTING_SECTION
+        },
+
+        .misc {
+#define SETTING_SECTION "misc"
+            GET_SETTING(debug, false),
 #undef SETTING_SECTION
         }
     };
