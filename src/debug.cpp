@@ -6,25 +6,54 @@
 
 bool debugMenuEnabled = false;
 
+void entityListGui() {
+    if(!ImGui::CollapsingHeader("Entity List")) return;
+
+    if(ImGui::BeginTable("Entity List", 2)) {
+        for(auto id: entitySystem.entities) {
+            ImGui::TableNextRow();
+            
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", id);
+
+            ImGui::TableNextColumn();
+            if(entitySystem.entityHasComponent<char const *>(id)) {
+                ImGui::Text(entitySystem.getComponentData<char const *>(id));
+            } else {
+                ImGui::Text("Unnamed Entity");
+            }
+        }
+
+        ImGui::EndTable();
+    }
+}
+
+void entityReaderGui() {
+    if(!ImGui::CollapsingHeader("Entity Reader")) return;
+
+    static int id = 0;
+    ImGui::InputInt("Id", &id);
+    if(!entitySystem.entities.contains(id)) ImGui::Text("WARNING: Entity not found");
+
+    if(ImGui::BeginTable("Entity Info", 2)) {
+        for(auto const & [name, location]: entitySystem.entityInfo(id)) {
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", name);
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%p", location);
+        }
+
+        ImGui::EndTable();
+    }
+}
+
 void runDebugGui(EntityId const _) {
     if(debugMenuEnabled && ImGui::Begin("Debug Menu")) {
-        if(ImGui::CollapsingHeader("Entity List") && ImGui::BeginTable("Entity List", 2)) {
-            for(auto id: entitySystem.entities) {
-                ImGui::TableNextRow();
-                
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", id);
-
-                ImGui::TableNextColumn();
-                if(entitySystem.entityHasComponent<char const *>(id)) {
-                    ImGui::Text(entitySystem.getComponentData<char const *>(id));
-                } else {
-                    ImGui::Text("Unnamed Entity");
-                }
-            }
-
-            ImGui::EndTable();
-        }
+        entityListGui();
+        entityReaderGui();
 
         ImGui::End();
     }

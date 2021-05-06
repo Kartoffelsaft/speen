@@ -15,14 +15,28 @@ struct Component {
     virtual void removeEntity(EntityId const) {/* dummy */}
     [[nodiscard]]
     virtual bool containsEntity(EntityId const) const { return false; }
+
+    [[nodiscard]]
+    virtual char const * typeName() const { return nullptr; }
+
+    // For debugging purposes only
+    [[nodiscard]]
+    virtual void const * dataLocation(EntityId const) const { return nullptr; }
 };
 
 template<typename T>
 struct ComponentType: std::unordered_map<EntityId, T>, Component {
     static constexpr ComponentId id() { return typeid(T).hash_code(); }
+
     void removeEntity(EntityId const id) override { this->erase(id); }
     [[nodiscard]]
     bool containsEntity(EntityId const id) const override { return this->contains(id); }
+
+    [[nodiscard]]
+    char const * typeName() const { return typeid(T).name(); }
+
+    [[nodiscard]]
+    void const * dataLocation(EntityId const id) const { return &this->at(id); }
 };
 
 struct EntitySystem {
@@ -61,6 +75,18 @@ struct EntitySystem {
     template<typename T>
     bool entityHasComponent(EntityId const id) {
         return getComponent<T>().containsEntity(id);
+    }
+
+    // for debugging
+    std::vector<std::tuple<char const *, void const *>> entityInfo(EntityId const id) {
+        std::vector<std::tuple<char const *, void const *>> ret;
+        ret.reserve(components.size());
+
+        for(auto const & [_, comp]: components) if(comp->containsEntity(id)) {
+            ret.push_back({comp->typeName(), comp->dataLocation(id)});
+        }
+
+        return ret;
     }
     
     /*
