@@ -19,6 +19,7 @@
 #include "gui.h"
 #include "health.h"
 #include "debug.h"
+#include "pointer.h"
 
 // Fuck you SDL
 #ifdef main
@@ -41,42 +42,7 @@ int main() {
 
     InputState inputState;
 
-    {
-        auto donut = entitySystem.newEntity();
-        entitySystem.addComponent(donut, "Donut");
-        entitySystem.addComponent(donut, ModelInstance::fromModelPtr(LOAD_MODEL("donut.glb")));
-        entitySystem.addComponent(donut, InputComponent{
-            .onInput = [](InputState const & inputs, EntityId const id) {
-                auto& donutOrientation = entitySystem.getComponentData<ModelInstance>(id).orientation;
-                auto newPos = getScreenWorldPos(inputs.mousePosXNormal, inputs.mousePosYNormal);
-                donutOrientation[12] = newPos.x;
-                donutOrientation[13] = newPos.y;
-                donutOrientation[14] = newPos.z;
-
-                for(auto i: inputs.inputsJustPressed) if(config.keybindings.place.contains(i)) {
-                    auto newPlacement = entitySystem.newEntity();
-                    entitySystem.addComponent(newPlacement, "Enemy");
-                    entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
-                    entitySystem.addComponent(newPlacement, PhysicsComponent{
-                        .position = Vec3{
-                            donutOrientation[12],
-                            donutOrientation[13],
-                            donutOrientation[14],
-                        },
-                        .collidable = Collidable{
-                            .collisionRange = 1.0,
-                            .colliderOffset = {0, 1, 0},
-                            .layer = 0b0000'0001,
-                            .mask = 0b0000'0001,
-                        }
-                    });
-                    entitySystem.addComponent(newPlacement, HealthComponent{
-                        .health = 103.f,
-                    });
-                }
-            }
-        });
-    }
+    createPointer();
 
     createWorldEntity();
 
