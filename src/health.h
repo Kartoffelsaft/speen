@@ -5,6 +5,7 @@
 #include "entitySystem.h"
 
 struct DeathComponent {
+    bool dead = false;
     void (*onDeath)(EntityId const id);
 };
 

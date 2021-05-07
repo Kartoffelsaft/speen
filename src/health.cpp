@@ -1,7 +1,12 @@
 #include "health.h"
 
 void killEntity(EntityId const id) {
-    if(entitySystem.entityHasComponent<DeathComponent>(id)) entitySystem.getComponentData<DeathComponent>(id).onDeath(id);
+    if(entitySystem.entityHasComponent<DeathComponent>(id)) {
+        auto& dc = entitySystem.getComponentData<DeathComponent>(id);
+        if(!dc.dead) dc.onDeath(id);
+        dc.dead = true;
+    }
+
     entitySystem.queueRemoveEntity(id);
 }
 
