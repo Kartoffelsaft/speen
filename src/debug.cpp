@@ -1,5 +1,7 @@
 #include "debug.h"
 
+#include <bgfx/bgfx.h>
+
 #include "gui.h"
 #include "input.h"
 #include "config.h"
@@ -63,6 +65,8 @@ void debugOnInput(InputState const & inputs, EntityId const id) {
     for(auto const & inp: inputs.inputsJustPressed) {
         if(config.keybindings.toggleDebugMenu.contains(inp)) debugMenuEnabled ^= 1;
     }
+
+    bgfx::setDebug(debugMenuEnabled? BGFX_DEBUG_STATS : 0);
 }
 
 EntityId createDebugEntity() {

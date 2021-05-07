@@ -25,8 +25,6 @@
 #undef main
 #endif
 int main() {
-    bgfx::setDebug(BGFX_DEBUG_STATS);
-
     initGui();
 
     entitySystem.initComponent<ModelInstance>();
@@ -57,6 +55,7 @@ int main() {
 
                 for(auto i: inputs.inputsJustPressed) if(config.keybindings.place.contains(i)) {
                     auto newPlacement = entitySystem.newEntity();
+                    entitySystem.addComponent(newPlacement, "Enemy");
                     entitySystem.addComponent(newPlacement, ModelInstance::fromModelPtr(LOAD_MODEL("man.glb")));
                     entitySystem.addComponent(newPlacement, PhysicsComponent{
                         .position = Vec3{
@@ -69,14 +68,10 @@ int main() {
                             .colliderOffset = {0, 1, 0},
                             .layer = 0b0000'0001,
                             .mask = 0b0000'0001,
-                            .onCollision = [](EntityId const id, EntityId const otherId){printf("Collided with %lu\n", otherId);},
                         }
                     });
                     entitySystem.addComponent(newPlacement, HealthComponent{
                         .health = 103.f,
-                    });
-                    entitySystem.addComponent(newPlacement, DeathComponent{
-                        .onDeath = [](EntityId const id){printf("Ouch!\n");}
                     });
                 }
             }
