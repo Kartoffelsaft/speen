@@ -21,6 +21,13 @@ struct Tile {
     constexpr RGB<float> color() const;
 };
 
+struct DecoratorPattern {
+    int radius;
+    float chance;
+    std::size_t seedOffset;
+    void (*decorate)(int x, int z, Tile& on);
+};
+
 struct Chunk {
     std::array<Tile, 16 * 16> tiles;
 
@@ -34,17 +41,19 @@ struct Chunk {
 
     void unloadPrimitive();
 
-    static Chunk generate(int chunkX, int chunkZ, int seed);
+    static Chunk generate(int chunkX, int chunkZ, int seed, std::vector<DecoratorPattern>);
 
 private:
     std::optional<Model::Primitive> primitive;
     uint8_t primitiveGenerationState = 0;
-    uint8_t const GENERATION_STATE_RIGHT_FINISHED =       0b0000'0001;
-    uint8_t const GENERATION_STATE_BOTTOM_FINISHED =      0b0000'0010;
+    uint8_t const GENERATION_STATE_RIGHT_FINISHED =        0b0000'0001;
+    uint8_t const GENERATION_STATE_BOTTOM_FINISHED =       0b0000'0010;
     uint8_t const GENERATION_STATE_BOTTOM_RIGHT_FINISHED = 0b0000'0100;
 };
 
 struct World {
+    std::vector<DecoratorPattern> patterns;
+    
     std::map<std::pair<int, int>, Chunk> chunks;
     std::set<std::pair<int, int>> outdatedChunks;
     int const worldSeed = 666666;
@@ -83,7 +92,6 @@ struct World {
      * @return std::optional<float> 
      */
     std::optional<float> sampleHeight(float x, float z);
-
 
     std::optional<Vec3> getWorldNormal(float x, float z);
 

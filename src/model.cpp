@@ -305,6 +305,12 @@ ModelLoader ModelLoader::init() {
                 };
                 return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
             }()}
+            {"./cookedModels/tree.glb.pmdl", [](){
+                uint8_t const data[] = {
+#include "../cookedModels/tree.glb.h"
+                };
+                return std::make_shared<Model const>(Model::loadFromGLBData(gltfLoader, data, sizeof(data)));
+            }()}
         }
     };
 #else

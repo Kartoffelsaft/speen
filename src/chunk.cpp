@@ -32,6 +32,23 @@ constexpr RGB<float> Tile::color() const {
 }
 
 EntityId createWorldEntity() { 
+
+    world.patterns = {
+        DecoratorPattern{
+            .radius = 2,
+            .chance = 0.001f,
+            .seedOffset = 0xfee3,
+            .decorate = [](int x, int z, Tile& on){
+                auto tree = entitySystem.newEntity();
+                entitySystem.addComponent(tree, ModelInstance::fromModelPtr(LOAD_MODEL("tree.glb")));
+                auto& o = entitySystem.getComponentData<ModelInstance>(tree).orientation;
+                o[12] = x;
+                o[13] = on.height;
+                o[14] = z;
+            }
+        }
+    };
+
     auto terrain = entitySystem.newEntity();
     entitySystem.addComponent(terrain, "World");
     entitySystem.addComponent(terrain, ModelInstance::fromModelPtr(world.updateModel(0, 0, 1)));
@@ -45,7 +62,7 @@ EntityId createWorldEntity() {
     return terrain;
 }
 
-Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
+Chunk Chunk::generate(int chunkX, int chunkZ, int seed, std::vector<DecoratorPattern> patterns) {
     Chunk ret;
 
     auto preConvHeightMap = generateNoise<18>(
@@ -65,6 +82,29 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed) {
             .height = postConvHeightMap[i] * 5 - 20,
             .type = Tile::Type::Grass,
         };
+    }
+
+    for(auto pattern: patterns) {
+        for(int i = 0; i < 256; i++) {
+            auto x = chunkX * 16 + i / 16;
+            auto z = chunkZ * 16 + i % 16;
+
+            if(randFromCoord(x, z, seed ^ pattern.seedOffset) < pattern.chance) {
+                bool invalidated = false;
+                for(int d = 1; d < pattern.radius * pattern.radius; d++) {
+                    auto dx = d / pattern.radius;
+                    auto dz = d % pattern.radius;
+
+                    invalidated = randFromCoord(x + dx, z + dz, seed ^ pattern.seedOffset) < pattern.chance;
+
+                    if(invalidated) break;
+                }
+
+                if(!invalidated) {
+                    pattern.decorate(x, z, ret.tiles[(i%16) * 16 + i / 16]);
+                }
+            }
+        }
     }
 
     return ret;
@@ -247,7 +287,7 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     for(int i = cx - renderDistance; i < cx + renderDistance; i++)
         for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
             if(!chunks.contains({i, j})) {
-                chunks.emplace(std::make_pair(i, j), Chunk::generate(i, j, this->worldSeed));
+                chunks.emplace(std::make_pair(i, j), Chunk::generate(i, j, this->worldSeed, this->patterns));
             }
         }
 
