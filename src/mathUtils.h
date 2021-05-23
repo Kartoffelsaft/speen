@@ -166,6 +166,22 @@ std::array<float, (ImgSize - ConvSize + 1) * (ImgSize - ConvSize + 1)> convolute
 }
 
 /**
+ * @brief generates a float between 0 and 1 based off of the coord and seed you give it
+ * 
+ * @param x 
+ * @param y 
+ * @param seed 
+ * @return float 
+ */
+inline float randFromCoord(int x, int y, std::size_t seed) {
+    return std::hash<std::size_t>()(
+        std::hash<double>()(std::tan(x * x * y * 137.54 + 0.3))
+      ^ std::hash<double>()(std::atanh(y * y * x * 805.87 + 0.84))
+      ^ seed
+    ) / (double) std::numeric_limits<std::size_t>::max();
+}
+
+/**
  * @brief Generates a square of noise
  * 
  * @tparam ImgSize how big the output image will be
@@ -191,23 +207,14 @@ std::array<float, ImgSize * ImgSize> generateNoise(
     std::array<float, ImgSize * ImgSize> ret;
     ret.fill(0.f);
 
-    auto getPsuedoRand = [=](int x, int y, std::size_t seedOffset){
-        return std::hash<std::size_t>()(
-            std::hash<double>()(std::tan(x * x * y * 137.54 + 0.3))
-          ^ std::hash<double>()(std::atanh(y * y * x * 805.87 + 0.84))
-          ^ seed
-          ^ seedOffset
-        ) / (double) std::numeric_limits<std::size_t>::max();
-    };
-
     for(auto const & [scale, amplification, seedOffset]: resolutions) {
         for(int64_t i = 0; i < (int64_t)ImgSize; i++) for(int64_t j = 0; j < (int64_t)ImgSize; j++) {
             auto [u, uFract] = floorFract((i + offsetX) * scale);
             auto [v, vFract] = floorFract((j + offsetY) * scale);
-            auto r00 = getPsuedoRand(u, v, seedOffset);
-            auto r01 = getPsuedoRand(u, v + 1, seedOffset);
-            auto r10 = getPsuedoRand(u + 1, v, seedOffset);
-            auto r11 = getPsuedoRand(u + 1, v + 1, seedOffset);
+            auto r00 = randFromCoord(u    , v    , seed ^ seedOffset);
+            auto r01 = randFromCoord(u    , v + 1, seed ^ seedOffset);
+            auto r10 = randFromCoord(u + 1, v    , seed ^ seedOffset);
+            auto r11 = randFromCoord(u + 1, v + 1, seed ^ seedOffset);
 
             ret[j * ImgSize + i] += amplification * interpolate(r00, r01, r10, r11, uFract, vFract);
         }
