@@ -7,6 +7,25 @@
 #include "mathUtils.h"
 #include "modelInstance.h"
 
+static auto const chunkIndices = std::vector<std::vector<uint32_t>>{
+    #include "./chunkIndices/ind000"
+    ,
+    #include "./chunkIndices/ind001"
+    ,
+    #include "./chunkIndices/ind010"
+    ,
+    #include "./chunkIndices/ind011"
+    ,
+    #include "./chunkIndices/ind100"
+    ,
+    #include "./chunkIndices/ind101"
+    ,
+    #include "./chunkIndices/ind110"
+    ,
+    #include "./chunkIndices/ind111"
+    ,
+};
+
 constexpr RGB<float> Tile::color() const {
     float const rGrassColorScale = 0.01f;
     float const gGrassColorScale = 0.02f;
@@ -16,12 +35,12 @@ constexpr RGB<float> Tile::color() const {
     float const bGrassColorOffset = 0.02;
     switch(this->type) {
     case Tile::Type::Grass:
-
         return {
             .r = this->height * rGrassColorScale + rGrassColorOffset,
             .g = this->height * gGrassColorScale + gGrassColorOffset,
             .b = this->height * bGrassColorScale + bGrassColorOffset,
         };
+
     case Tile::Type::Blasted:
         return {
             .r = 0.23f,
@@ -133,10 +152,9 @@ Model::Primitive Chunk::asPrimitive(
         | (bottomRightChunk.has_value()? GENERATION_STATE_BOTTOM_RIGHT_FINISHED : 0);
 
     std::vector<float> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<uint32_t> const & indices = chunkIndices[this->primitiveGenerationState];
     auto const vertexSize = 3 + 4;
     vertices.reserve((this->tiles.size() + 33) * vertexSize);
-    indices.reserve((this->tiles.size()) * 3 * 2);
 
     for(int64_t i = 0; i < (int64_t)this->tiles.size(); i++) {
         vertices.push_back((float)(i % 16 + chunkOffsetX * 16));
@@ -172,70 +190,8 @@ Model::Primitive Chunk::asPrimitive(
         vertices.push_back(1.f);
     }
 
-    // the tris are shaped like this:
-    // t t t t t    ┌─┬─┬─┬─┐
-    //              │╲│╱│╲│╱│
-    // t x t x t -> ├─┼─┼─┼─┤
-    //              │╱│╲│╱│╲│
-    // t t t t t    └─┴─┴─┴─┘
-    //
-    // where the t's are regular tiles and the x's are "xtile"s
-
-    // Also, holy crap this will need cleaning up
-    for(std::size_t i = 0; i < this->tiles.size() / 4; i++) {
-        auto const xtile = 
-            (i/8 * 32)     // row
-          + ((i * 2) % 16) // column
-          + 17;            // down 1 right 1
-        auto const xtileRow = xtile / 16;
-        auto const xtileColumn = xtile % 16;
-        auto const onBottomEdge = xtileRow == 15;
-        auto const onRightEdge  = xtileColumn == 15;
-        for(auto ni: {
-            xtile, xtile - 16, xtile - 17, 
-            xtile, xtile - 17, xtile - 1
-        }) { indices.push_back(ni); }
-        if(!onBottomEdge) for(auto ni: {
-            xtile, xtile - 1,  xtile + 15, 
-            xtile, xtile + 15, xtile + 16
-        }) { indices.push_back(ni); }
-        else if(bottomChunk.has_value()) for(auto ni: {
-            xtile, xtile - 1, bottomChunkOffset + xtileColumn - 1,
-            xtile, bottomChunkOffset + xtileColumn - 1, bottomChunkOffset + xtileColumn
-        }) { indices.push_back(ni); }
-        if(!onRightEdge) for(auto ni: {
-            xtile, xtile - 15, xtile - 16, 
-            xtile, xtile + 1,  xtile - 15
-        }) { indices.push_back(ni); }
-        else if(rightChunk.has_value()) for(auto ni: {
-            xtile, rightChunkOffset + xtileRow - 1, xtile - 16,
-            xtile, rightChunkOffset + xtileRow, rightChunkOffset + xtileRow - 1
-        }) { indices.push_back(ni); }
-        if((!onBottomEdge) && (!onRightEdge)) for(auto ni: {
-            xtile, xtile + 16, xtile + 17, 
-            xtile, xtile + 17, xtile + 1
-        }) { indices.push_back(ni); }
-        else if(
-            onBottomEdge
-         && onRightEdge
-         && bottomRightChunk.has_value()
-         && bottomChunk.has_value()
-         && rightChunk.has_value()) for(auto ni: {
-            xtile, bottomChunkOffset + xtileColumn, bottomRightChunkOffset,
-            xtile, bottomRightChunkOffset, rightChunkOffset + xtileRow
-        }) { indices.push_back(ni); }
-        else if((onBottomEdge) && (!onRightEdge) && bottomChunk.has_value()) for(auto ni: {
-            xtile, bottomChunkOffset + xtileColumn, bottomChunkOffset + xtileColumn + 1,
-            xtile, bottomChunkOffset + xtileColumn + 1, xtile + 1
-        }) { indices.push_back(ni); }
-        else if((!onBottomEdge) && (onRightEdge) && rightChunk.has_value()) for(auto ni: {
-            xtile, xtile + 16, rightChunkOffset + xtileRow + 1,
-            xtile, rightChunkOffset + xtileRow + 1, rightChunkOffset + xtileRow
-        }) { indices.push_back(ni); }
-    }
-
     auto vertexData = bgfx::copy(vertices.data(), vertices.size() * sizeof(float));
-    auto indexData = bgfx::copy(indices.data(), indices.size() * sizeof(uint32_t));
+    auto indexData = bgfx::makeRef(indices.data(), indices.size() * sizeof(uint32_t));
     bgfx::VertexLayout layout;
     layout
         .begin()
