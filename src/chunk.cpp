@@ -59,6 +59,7 @@ EntityId createWorldEntity() {
             .seedOffset = 0xfee3,
             .decorate = [](int x, int z, Tile& on){
                 auto tree = entitySystem.newEntity();
+                entitySystem.addComponent(tree, "Tree");
                 entitySystem.addComponent(tree, ModelInstance::fromModelPtr(LOAD_MODEL("tree.glb")));
                 auto& o = entitySystem.getComponentData<ModelInstance>(tree).orientation;
                 o[12] = x;
