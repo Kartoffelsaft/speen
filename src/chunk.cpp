@@ -47,6 +47,13 @@ constexpr RGB<float> Tile::color() const {
             .g = 0.23f,
             .b = 0.23f,
         };
+
+    case Tile::Type::Dirt:
+        return {
+            .r = 0.5f,
+            .g = 0.4f,
+            .b = 0.2f,
+        };
     }
 }
 
@@ -54,17 +61,44 @@ EntityId createWorldEntity() {
 
     world.patterns = {
         DecoratorPattern{
-            .radius = 2,
+            .radius = 3,
             .chance = 0.001f,
             .seedOffset = 0xfee3,
-            .decorate = [](int x, int z, Tile& on){
+            .decorate = [](int x, int z){
                 auto tree = entitySystem.newEntity();
                 entitySystem.addComponent(tree, "Tree");
                 entitySystem.addComponent(tree, ModelInstance::fromModelPtr(LOAD_MODEL("tree.glb")));
                 auto& o = entitySystem.getComponentData<ModelInstance>(tree).orientation;
                 o[12] = x;
-                o[13] = on.height;
+                o[13] = world.getTile(x, z)->height;
                 o[14] = z;
+
+                // GDDDG
+                // DDDDD
+                // DDTDD
+                // DDDDD
+                // GDDDG
+                world.getTileMut(x - 1, z - 2)->type = Tile::Type::Dirt;
+                world.getTileMut(x    , z - 2)->type = Tile::Type::Dirt;
+                world.getTileMut(x + 1, z - 2)->type = Tile::Type::Dirt;
+                world.getTileMut(x - 2, z - 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x - 1, z - 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x    , z - 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x + 1, z - 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x + 2, z - 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x - 2, z    )->type = Tile::Type::Dirt;
+                world.getTileMut(x - 1, z    )->type = Tile::Type::Dirt;
+                world.getTileMut(x    , z    )->type = Tile::Type::Dirt;
+                world.getTileMut(x + 1, z    )->type = Tile::Type::Dirt;
+                world.getTileMut(x + 2, z    )->type = Tile::Type::Dirt;
+                world.getTileMut(x - 2, z + 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x - 1, z + 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x    , z + 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x + 1, z + 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x + 2, z + 1)->type = Tile::Type::Dirt;
+                world.getTileMut(x - 1, z + 2)->type = Tile::Type::Dirt;
+                world.getTileMut(x    , z + 2)->type = Tile::Type::Dirt;
+                world.getTileMut(x + 1, z + 2)->type = Tile::Type::Dirt;
             }
         }
     };
@@ -82,7 +116,7 @@ EntityId createWorldEntity() {
     return terrain;
 }
 
-Chunk Chunk::generate(int chunkX, int chunkZ, int seed, std::vector<DecoratorPattern> patterns) {
+Chunk Chunk::generateSkeleton(int chunkX, int chunkZ, int seed) {
     Chunk ret;
 
     auto preConvHeightMap = generateNoise<18>(
@@ -104,6 +138,17 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed, std::vector<DecoratorPat
         };
     }
 
+    return ret;
+}
+
+void Chunk::finishGeneration(
+    int chunkX, 
+    int chunkZ, 
+    int seed, 
+    std::vector<DecoratorPattern> patterns,
+    std::set<std::tuple<int, int>>& outSkeletonChunkRequests,
+    std::vector<std::function<void()>>& outDecorators
+) {
     for(auto pattern: patterns) {
         for(int i = 0; i < 256; i++) {
             auto x = chunkX * 16 + i / 16;
@@ -121,13 +166,19 @@ Chunk Chunk::generate(int chunkX, int chunkZ, int seed, std::vector<DecoratorPat
                 }
 
                 if(!invalidated) {
-                    pattern.decorate(x, z, ret.tiles[(i%16) * 16 + i / 16]);
+                    for(int skelx = (x - pattern.radius - 15) / 16; skelx <= (x + pattern.radius) / 16; skelx++) {
+                        for(int skelz = (z - pattern.radius - 15) / 16; skelz <= (z + pattern.radius) / 16; skelz++) {
+                            if(skelx != 0 || skelz != 0) {
+                                outSkeletonChunkRequests.insert(std::make_tuple(skelx, skelz));
+                            }
+                        }
+                    }
+
+                    outDecorators.emplace_back([=]() {pattern.decorate(x, z);});
                 }
             }
         }
     }
-
-    return ret;
 }
 
 Model::Primitive Chunk::asPrimitive(
@@ -210,7 +261,10 @@ Model::Primitive Chunk::asPrimitive(
 }
 
 void Chunk::unloadPrimitive() {
-    if(this->primitive.has_value()) {
+    if(this->primitive.has_value()
+    && bgfx::isValid(this->primitive.value().vertexBuffer)
+    && bgfx::isValid(this->primitive.value().indexBuffer)
+    ) {
         this->primitive.value().destroy();
         this->primitive.reset();
         this->primitiveGenerationState = 0;
@@ -241,25 +295,9 @@ std::weak_ptr<Model> World::updateModel(int cx, int cz, int renderDistance) {
 Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     std::vector<Model::Primitive> primitives;
     primitives.reserve((renderDistance * 2 + 1) * (renderDistance * 2 + 1));
-    for(int i = cx - renderDistance; i < cx + renderDistance; i++)
-        for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
-            if(!chunks.contains({i, j})) {
-                chunks.emplace(std::make_pair(i, j), Chunk::generate(i, j, this->worldSeed, this->patterns));
-            }
-        }
 
-    for(auto & [coord, chunk]: chunks) {
-        auto [x, z] = coord;
-        if(
-            outdatedChunks.contains({x, z})
-         || x < cx - unloadDistance
-         || x > cx + unloadDistance
-         || z < cz - unloadDistance
-         || z > cz + unloadDistance
-        ) {
-            chunk.unloadPrimitive();
-        }
-    }
+    this->loadChunks(cx, cz, renderDistance);
+    this->unloadChunks(cx, cz, unloadDistance);
 
     outdatedChunks.clear();
 
@@ -283,6 +321,53 @@ Model World::asModel(int cx, int cz, int renderDistance, int unloadDistance) {
     return Model{
         .primitives = primitives
     };
+}
+
+void World::loadChunks(int cx, int cz, int renderDistance) {
+    std::set<std::tuple<int, int>> skeletonChunkRequests;
+    std::vector<std::function<void()>> decorators;
+
+    for(int i = cx - renderDistance; i < cx + renderDistance; i++) {
+        for(int j = cz - renderDistance; j < cz + renderDistance; j++) {
+            if(!chunks.contains({i, j})) {
+                chunks.emplace(std::make_pair(i, j), Chunk::generateSkeleton(i, j, this->worldSeed));
+            }
+
+            if(chunks[{i, j}].isSkeleton) {
+                chunks[{i, j}].finishGeneration(
+                    i, 
+                    j, 
+                    this->worldSeed, 
+                    this->patterns, 
+                    skeletonChunkRequests, 
+                    decorators
+                );
+            }
+        }
+    }
+
+    for(auto [scrX, scrZ]: skeletonChunkRequests) {
+        chunks.emplace(std::make_pair(scrX, scrZ), Chunk::generateSkeleton(scrX, scrZ, this->worldSeed));
+    }
+
+    for(auto decorator: decorators) {
+        decorator();
+    }
+}
+
+void World::unloadChunks(int cx, int cz, int unloadDistance) {
+    for(auto & [coord, chunk]: chunks) {
+        auto [x, z] = coord;
+        if(
+            outdatedChunks.contains({x, z})
+         || x < cx - unloadDistance
+         || x > cx + unloadDistance
+         || z < cz - unloadDistance
+         || z > cz + unloadDistance
+        ) {
+            chunk.unloadPrimitive();
+        }
+    }
 }
 
 bool World::withinRenderDistance(ModelInstance const & mod) const {

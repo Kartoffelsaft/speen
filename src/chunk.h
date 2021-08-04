@@ -15,6 +15,7 @@ struct Tile {
     float height;
     enum Type {
         Grass,
+        Dirt,
         Blasted,
     }; Type type;
 
@@ -25,11 +26,13 @@ struct DecoratorPattern {
     int radius;
     float chance;
     std::size_t seedOffset;
-    void (*decorate)(int x, int z, Tile& on);
+    void (*decorate)(int x, int z);
 };
 
 struct Chunk {
     std::array<Tile, 16 * 16> tiles;
+
+    bool isSkeleton = true;
 
     Model::Primitive asPrimitive(
         int chunkOffsetX,
@@ -41,10 +44,23 @@ struct Chunk {
 
     void unloadPrimitive();
 
-    static Chunk generate(int chunkX, int chunkZ, int seed, std::vector<DecoratorPattern>);
+    static Chunk generateSkeleton(
+        int chunkX, 
+        int chunkZ, 
+        int seed
+    );
+
+    void finishGeneration(
+        int chunkX, 
+        int chunkZ, 
+        int seed, 
+        std::vector<DecoratorPattern> patterns,
+        std::set<std::tuple<int, int>>& outSkeletonChunkRequests,
+        std::vector<std::function<void()>>& outDecorators
+    );
 
 private:
-    std::optional<Model::Primitive> primitive;
+    std::optional<Model::Primitive> primitive = std::nullopt;
     uint8_t primitiveGenerationState = 0;
     uint8_t const GENERATION_STATE_RIGHT_FINISHED =        0b0000'0001;
     uint8_t const GENERATION_STATE_BOTTOM_FINISHED =       0b0000'0010;
@@ -101,6 +117,9 @@ private:
     int oldRenderDistance = -1;
 
     Model asModel(int cx, int cz, int renderDistance, int unloadDistance);
+
+    void loadChunks(int cx, int cz, int renderDistance);
+    void unloadChunks(int cx, int cz, int unloadDistance);
 };
 
 extern World world;
