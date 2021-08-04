@@ -177,7 +177,7 @@ inline float randFromCoord(int x, int y, std::size_t seed) {
     return std::hash<std::size_t>()(
         std::hash<double>()(std::tan(x * x * y * 137.54 + 0.3))
       ^ std::hash<double>()(std::atanh(y * y * x * 805.87 + 0.84))
-      ^ seed
+      ^ std::hash<double>()(1 / std::sin(x * seed * y * 8.8 + 0.1))
     ) / (double) std::numeric_limits<std::size_t>::max();
 }
 

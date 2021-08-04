@@ -1,12 +1,16 @@
 #include <bgfx/bgfx.h>
 #include <random>
 #include <cmath>
+#include <numbers>
 #include <algorithm>
 
 #include "chunk.h"
 #include "mathUtils.h"
 #include "modelInstance.h"
 
+#ifdef __INTELLISENSE__
+#pragma diag_suppress 29
+#endif
 static auto const chunkIndices = std::vector<std::vector<uint32_t>>{
     #include "./chunkIndices/ind000"
     ,
@@ -60,7 +64,23 @@ constexpr RGB<float> Tile::color() const {
 EntityId createWorldEntity() { 
 
     world.patterns = {
-        DecoratorPattern{
+        DecoratorPattern{ // Crater
+            .radius = 14,
+            .chance = 0.0001f,
+            .seedOffset = 0x7f7e,
+            .decorate = [](int x, int z){
+                for(int i = -13; i <= 13; ++i) {
+                    for(int j = -13; j <= 13; ++j) {
+                        if(i*i + j*j < 160) {
+                            world.getTileMut(x + i, z + j)->type = Tile::Type::Blasted;
+                            world.getTileMut(x + i, z + j)->height -= 
+                                10 * std::cos(std::numbers::pi * std::sqrt(i*i + j*j) / 13 / 2);
+                        }
+                    }
+                }
+            }
+        },
+        DecoratorPattern{ // Tree
             .radius = 3,
             .chance = 0.001f,
             .seedOffset = 0xfee3,
@@ -100,7 +120,8 @@ EntityId createWorldEntity() {
                 world.getTileMut(x    , z + 2)->type = Tile::Type::Dirt;
                 world.getTileMut(x + 1, z + 2)->type = Tile::Type::Dirt;
             }
-        }
+        },
+
     };
 
     auto terrain = entitySystem.newEntity();
@@ -179,6 +200,8 @@ void Chunk::finishGeneration(
             }
         }
     }
+
+    this->isSkeleton = false;
 }
 
 Model::Primitive Chunk::asPrimitive(
